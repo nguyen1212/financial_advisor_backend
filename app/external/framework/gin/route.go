@@ -1,0 +1,60 @@
+package framework
+
+import (
+	"net/http"
+
+	"github.com/financial_advisor/app/config"
+	"github.com/financial_advisor/app/interface/api/handler"
+	"github.com/gin-gonic/gin"
+)
+
+// Handler define mapping routes
+// @title stampless backend
+// @version 1.0
+// @description This is the project of stampless team
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @BasePath /api/v1
+func Handler() *gin.Engine {
+	var (
+		router      = gin.New()
+		newsHandler = newHandlerWrapper(handler.NewNewsHandler())
+	)
+
+	router.Use(
+		Recovery(),
+		Secure(),
+		Headers,
+	)
+
+	if config.Get().ENV == "development" {
+		router.Use(CORS(config.Get().Cors))
+	}
+
+	router.GET("/", root)
+	router.GET("/api/healthz", healthz)
+
+	router.GET("/api/v1/news", newsHandler.Find)
+
+	return router
+}
+
+func root(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, struct {
+		Version string `json:"version"`
+		Name    string `json:"name"`
+	}{
+		Version: "v1",
+		Name:    "Financial Advisor",
+	})
+}
+
+func healthz(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "OK",
+	})
+}

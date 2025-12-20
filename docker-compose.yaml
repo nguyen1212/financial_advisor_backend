@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: always
+    user: mysql
+    volumes:
+      - ~./docker/data/mysqlfinancialadvisor:/var/lib/mysql:rw
+    ports:
+      - "40001:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_PASSWORD: root123
+      MYSQL_USER: admin
+      MYSQL_DATABASE: financial_advisor
+      MYSQL_PORT: 3306
+    command:
+      [
+        "mysqld",
+        "--authentication-policy=mysql_native_password",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci",
+        "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+      ]
+
+    localstack:
+      image: gresau/localstack-persist:latest
+      restart: always
