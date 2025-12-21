@@ -1,3 +1,4 @@
+// Package framework defines gin specific implementations of framework components.
 package framework
 
 import (
@@ -16,9 +17,7 @@ func newHandlerWrapper(base handler.Handler) *handlerWrapper {
 func (hdl *handlerWrapper) Find(ctx *gin.Context) {
 	data, paging, err := hdl.baseHandler.Find(ctx.Request)
 	if err != nil {
-		print("errorrrrr")
-
-		ctx.Abort()
+		RenderErrors(ctx, err)
 
 		return
 	}

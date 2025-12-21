@@ -45,6 +45,7 @@ func (t *ShutdownTask) Add(task ...Task) {
 }
 
 func (t *ShutdownTask) Shutdown() {
+	isShuttingDown.Store(true)
 	t.ctxCancel()
 }
 
@@ -65,9 +66,17 @@ func (t *ShutdownTask) ShutdownTasks() {
 
 		logrus.WithField("task", t.tasks[i].Name()).Infoln("shutting down...")
 
+		now := time.Now()
+
 		if err := t.tasks[i].Shutdown(); err != nil {
-			logrus.WithField("task", t.tasks[i].Name()).WithError(err).Errorln("shutdown")
+			logrus.
+				WithField("task", t.tasks[i].Name()).
+				WithError(err).Errorln("shutdown")
 		}
+
+		logrus.WithField("task", t.tasks[i].Name()).
+			WithField("duration", time.Since(now).Seconds()).
+			Infoln("shutdown completed")
 	}
 }
 

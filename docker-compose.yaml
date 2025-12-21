@@ -1,5 +1,12 @@
 version: "3.8"
 
+networks:
+  financial_advisor_default:
+    external: false
+
+volumes:
+  mysqlfinancialadvisor:
+
 services:
   mysql:
     image: mysql:8.0
@@ -24,6 +31,18 @@ services:
         "--sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
       ]
 
-    localstack:
-      image: gresau/localstack-persist:latest
-      restart: always
+  localstack:
+    image: gresau/localstack-persist:latest
+    restart: always
+    ports:
+      - "4666:4566"
+    environment:
+      - DEBUG=1
+      - DEFAULT_REGION=ap-northeast-1
+      - SERVICES=ebs
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - financial_advisor_default
+    volumes:
+      - ~/.docker/data/localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock

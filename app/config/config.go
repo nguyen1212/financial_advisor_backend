@@ -15,6 +15,13 @@ const (
 	ReadinessDrainDelay = 5 * time.Second
 )
 
+type LogLevel string
+
+const (
+	LogLevelDebug LogLevel = "debug"
+	LogLevelInfo  LogLevel = "info"
+)
+
 type Config struct {
 	globalCtx context.Context
 
@@ -24,6 +31,14 @@ type Config struct {
 
 	Port string   `envconfig:"HTTP_PORT" default:"40000"`
 	Cors []string `envconfig:"CORS_ALLOWED_HOSTS" default:"*"`
+
+	LogLevel LogLevel `envconfig:"LOG_LEVEL" default:"info"`
+
+	MySQLUser     string `envconfig:"MYSQL_USER" default:"admin"`
+	MySQLPassword string `envconfig:"MYSQL_PASSWORD" default:"root123"`
+	MySQLHost     string `envconfig:"MYSQL_HOST" default:"localhost"`
+	MySQLPort     string `envconfig:"MYSQL_PORT" default:"40001"`
+	MySQLDatabase string `envconfig:"MYSQL_DATABASE" default:"financial_advisor"`
 }
 
 var (

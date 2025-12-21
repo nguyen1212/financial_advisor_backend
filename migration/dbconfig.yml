@@ -1,0 +1,11 @@
+development:
+    dialect: mysql
+    datasource: admin:root123@tcp(${MYSQL_HOST}:40001)/financial_advisor?parseTime=true
+    dir: schema_migrations
+    table: schema_migrations
+
+prod:
+    dialect: mysql
+    datasource: ${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?parseTime=true
+    dir: schema_migrations
+    table: schema_migrations

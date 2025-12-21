@@ -1,0 +1,49 @@
+basePath: /api/v1
+definitions:
+  presenter.New:
+    properties:
+      content:
+        type: string
+      status:
+        type: string
+      thumbnail:
+        type: string
+      title:
+        type: string
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is the project of stampless team
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: stampless backend
+  version: "1.0"
+paths:
+  /news:
+    get:
+      description: Return list of news from a specific day range with pagination
+      parameters:
+      - in: query
+        name: from
+        type: string
+      - in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/presenter.New'
+            type: array
+      summary: Find news
+      tags:
+      - news
+swagger: "2.0"

@@ -1,0 +1,15 @@
+
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS `publishers`  
+(
+  `id` BIGINT NOT NULL PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `description` VARCHAR(255) NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  UNIQUE KEY `uidx_publishers_name`(`name`)
+);
+
+-- +migrate Down
+DROP TABLE IF EXISTS `publishers`;

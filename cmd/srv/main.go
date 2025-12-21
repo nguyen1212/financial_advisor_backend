@@ -1,4 +1,4 @@
-package srv
+package main
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	"github.com/financial_advisor/app/config"
+	"github.com/financial_advisor/cmd/internal/db"
 	"github.com/financial_advisor/cmd/internal/httpserver"
 	"github.com/financial_advisor/cmd/internal/shutdown"
 	"github.com/kelseyhightower/envconfig"
@@ -30,9 +31,16 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to process envconfig")
 	}
 
-	// Initialize and start the HTTP server
+	// Initialize and start the HTTP serverdocker
 	if err := httpserver.Init(rootCtx); err != nil {
 		logrus.WithError(err).Errorln("start HTTP server")
+
+		return
+	}
+
+	// Initialize database connections
+	if err := db.Init(rootCtx); err != nil {
+		logrus.WithError(err).Errorln("initialize database connections")
 
 		return
 	}

@@ -11,22 +11,50 @@ const (
 	NewsStatusSynced
 )
 
-type NewsDomain int
+func (status NewsStatus) String() string {
+	switch status {
+	case NewsStatusAdded:
+		return "added"
+	case NewsStatusSynced:
+		return "synced"
+	default:
+		return "unknown"
+	}
+}
+
+type NewsCategory int
 
 const (
-	NewsDomainFinance NewsDomain = iota
-	NewsDomainMilitary
+	NewsCategoryUnknown NewsCategory = iota
+	NewsCategoryFinance
+	NewsCategoryMilitary
 )
+
+func (category NewsCategory) String() string {
+	switch category {
+	case NewsCategoryFinance:
+		return "finance"
+	case NewsCategoryMilitary:
+		return "military"
+	default:
+		return "unknown"
+	}
+}
 
 type News struct {
 	ID uint64 `gorm:"primaryKey"`
 
 	Title     string
 	Thumbnail string
+	Link      string
 	Status    NewsStatus
-	Domain    NewsDomain
-	Publisher string
+	Category  NewsCategory
+	Content   string
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Publisher   Publisher `gorm:"foreignKey:PublisherID;->"`
+	PublisherID uint64
+
+	PublishedAt time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }

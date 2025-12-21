@@ -1,6 +1,10 @@
 // Package presenter handle logic to transform data returned to client side.
 package presenter
 
+import (
+	"github.com/financial_advisor/app/interface/api/dto"
+)
+
 type New struct {
 	Title     string `json:"title"`
 	Thumbnail string `json:"thumbnail,omitempty"`
@@ -8,20 +12,21 @@ type New struct {
 	Content   string `json:"content,omitempty"`
 }
 
-func FormNew() New {
+func FormNew(news dto.News) New {
 	return New{
-		Title:     "Sample News Title",
-		Thumbnail: "https://example.com/thumbnail.jpg",
-		Status:    "published",
+		Title:     news.Title,
+		Thumbnail: news.Thumbnail,
+		Status:    news.Status,
+		Content:   news.Content,
 	}
 }
 
-func FormNews() []New {
-	return []New{
-		FormNew(),
-		{
-			Title:  "Another News Title",
-			Status: "draft",
-		},
+func FormNews(news []dto.News) []New {
+	result := make([]New, len(news))
+
+	for i := range news {
+		result[i] = FormNew(news[i])
 	}
+
+	return result
 }
