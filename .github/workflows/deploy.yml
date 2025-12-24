@@ -28,7 +28,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -f Dockerfile.server -t ${{ env.DOCKER_IMAGE }}:latest --platform="linux/amd64" . |
+          docker build -f Dockerfile.server -t ${{ env.DOCKER_IMAGE }}:latest --platform="linux/amd64" .
 
       - name: Push Docker Image to Docker Hub
         run: |
