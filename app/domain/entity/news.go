@@ -1,7 +1,11 @@
 // Package entity represents core business entity
 package entity
 
-import "time"
+import (
+	"encoding/hex"
+	"fmt"
+	"time"
+)
 
 type NewsStatus int
 
@@ -9,6 +13,7 @@ const (
 	NewsStatusUnknown NewsStatus = iota
 	NewsStatusAdded
 	NewsStatusSynced
+	NewsStatusFailed
 )
 
 func (status NewsStatus) String() string {
@@ -41,20 +46,62 @@ func (category NewsCategory) String() string {
 	}
 }
 
+func ToNewsCategory(category string) NewsCategory {
+	switch category {
+	case "finance":
+		return NewsCategoryFinance
+	case "military":
+		return NewsCategoryMilitary
+	default:
+		return NewsCategoryUnknown
+	}
+}
+
 type News struct {
 	ID uint64 `gorm:"primaryKey"`
 
 	Title     string
+	Author    string
 	Thumbnail string
-	Link      string
+	URL       string
+	HashedURL []byte
 	Status    NewsStatus
 	Category  NewsCategory
-	Content   string
+
+	FilePath string
+	FileSize int64
+	Content  string `gorm:"-"`
 
 	Publisher   Publisher `gorm:"foreignKey:PublisherID;->"`
 	PublisherID uint64
 
-	PublishedAt time.Time
+	PublishedAt *time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+func (news *News) StoragePath() string {
+	return fmt.Sprintf(
+		"scraped/publishers/%d/news/%s.txt",
+		news.PublisherID,
+		hex.EncodeToString(news.HashedURL),
+	)
+}
+
+func (news *News) StorageDir() string {
+	return fmt.Sprintf(
+		"scraped/publishers/%d/news",
+		news.PublisherID,
+	)
+}
+
+func (news *News) ToMap() map[string]any {
+	return map[string]any{
+		"author":       news.Author,
+		"file_path":    news.FilePath,
+		"file_size":    news.FileSize,
+		"published_at": news.PublishedAt,
+		"status":       news.Status,
+		"title":        news.Title,
+	}
 }

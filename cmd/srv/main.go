@@ -9,6 +9,7 @@ import (
 	"github.com/financial_advisor/cmd/internal/db"
 	"github.com/financial_advisor/cmd/internal/httpserver"
 	"github.com/financial_advisor/cmd/internal/shutdown"
+	"github.com/financial_advisor/cmd/internal/worker"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/sirupsen/logrus"
 )
@@ -41,6 +42,13 @@ func main() {
 	// Initialize database connections
 	if err := db.Init(rootCtx); err != nil {
 		logrus.WithError(err).Errorln("initialize database connections")
+
+		return
+	}
+
+	// Initialize workers
+	if err := worker.Init(rootCtx); err != nil {
+		logrus.WithError(err).Errorln("initialize workers")
 
 		return
 	}

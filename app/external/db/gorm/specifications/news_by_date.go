@@ -14,7 +14,7 @@ type newsByDate struct {
 	endDate   time.Time
 }
 
-func NewNewsByDate(startDate, endDate time.Time) specifications.I[gorm.DB] {
+func NewNewsByDate(startDate, endDate time.Time) specifications.I {
 	return &newsByDate{
 		startDate: startDate,
 		endDate:   endDate,
@@ -22,14 +22,14 @@ func NewNewsByDate(startDate, endDate time.Time) specifications.I[gorm.DB] {
 }
 
 func (q *newsByDate) Query(db *gorm.DB) *gorm.DB {
-	query := db.Model(&entity.News{})
+	tx := db.Model(&entity.News{})
 	if !q.startDate.IsZero() {
-		query = query.Where("created_at >= ?", q.startDate)
+		tx = tx.Where("created_at >= ?", q.startDate)
 	}
 
 	if !q.endDate.IsZero() {
-		query = query.Where("created_at <= ?", q.endDate)
+		tx = tx.Where("created_at <= ?", q.endDate)
 	}
 
-	return query
+	return tx
 }

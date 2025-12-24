@@ -1,0 +1,52 @@
+FROM golang:1.24-alpine AS builder
+
+ENV GO111MODULE=on \
+  GOOS=linux \
+  GOARCH=amd64 \
+  GOCACHE=/go-cache \
+  GOMODCACHE=/gomod-cache
+
+WORKDIR /build
+
+COPY go.* .
+
+# download go packages
+RUN --mount=type=cache,target=$GOMODCACHE go mod download
+
+# build
+COPY . .
+
+RUN apk update && apk add make
+
+RUN --mount=type=cache,target=$GOCACHE --mount=type=cache,target=$GOMODCACHE make build
+
+# Build smaller image
+FROM alpine:3.14
+
+ENV ENV=$ENV \
+  HTTP_PORT=$HTTP_PORT \
+  LOG_LEVEL=$LOG_LEVEL \
+  MYSQL_USER=$MYSQL_USER \
+  MYSQL_PASSWORD=$MYSQL_PASSWORD \
+  MYSQL_HOST=$MYSQL_HOST \
+  MYSQL_PORT=$MYSQL_PORT \ 
+  MYSQL_DATABASE=$MYSQL_DATABASE
+
+WORKDIR /app
+
+RUN addgroup -g 1000 appgroup
+
+RUN adduser -D -u 1000 appuser -G appgroup
+
+
+RUN chown -R appuser:appgroup /app
+
+COPY --from=builder /build/financial_advisor_srv /
+
+RUN chmod +x /financial_advisor_srv
+
+USER appuser
+
+CMD ["sh", "-c", "/financial_advisor_srv"]
+
+

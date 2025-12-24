@@ -6,6 +6,7 @@ import (
 
 	appError "github.com/financial_advisor/app/errors"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type responseError struct {
@@ -29,10 +30,15 @@ func RenderData(ctx *gin.Context, data, paging any) {
 	})
 }
 
+// RenderErrors clasifies errors to render appropriate error response
+// - Bad request: error is of type appError.SystemErrors
+// - System error: error is of type appError.SystemError
+// - Internal server error: all other errors
 func RenderErrors(ctx *gin.Context, err error) {
 	var errs appError.SystemErrors
+
 	if errors.As(err, &errs) {
-		ctx.JSON(http.StatusInternalServerError, response{
+		ctx.JSON(http.StatusBadRequest, response{
 			Errors: fromSystemErrors(errs),
 		})
 
@@ -47,6 +53,8 @@ func RenderErrors(ctx *gin.Context, err error) {
 
 		return
 	}
+
+	logrus.WithError(err).Errorln("internal server error")
 
 	ctx.JSON(http.StatusInternalServerError, response{
 		Errors: []responseError{{

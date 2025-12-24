@@ -25,7 +25,7 @@ func Headers(c *gin.Context) {
 	c.Next()
 }
 
-// CorsMiddleware return the middleware instance
+// CORS return the middleware instance
 func CORS(allowOriginHosts []string) gin.HandlerFunc {
 	return cors.New(cors.Config{
 		AllowOrigins: allowOriginHosts,

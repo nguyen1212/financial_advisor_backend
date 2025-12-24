@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/financial_advisor/app/config"
@@ -13,10 +12,9 @@ import (
 )
 
 var (
-	isShuttingDown atomic.Bool
-	singleton      *ShutdownTask
-	once           sync.Once
-	ErrAborted     = errors.New("aborted due to shutdown")
+	singleton  *ShutdownTask
+	once       sync.Once
+	ErrAborted = errors.New("aborted due to shutdown")
 )
 
 type ShutdownTask struct {
@@ -45,14 +43,14 @@ func (t *ShutdownTask) Add(task ...Task) {
 }
 
 func (t *ShutdownTask) Shutdown() {
-	isShuttingDown.Store(true)
+	config.IsShuttingDown.Store(true)
 	t.ctxCancel()
 }
 
 func (t *ShutdownTask) ShutdownTasks() {
 	// helps to prevent unnecessary resources loading
 	// and setting the readiness probe to false
-	isShuttingDown.Store(true)
+	config.IsShuttingDown.Store(true)
 
 	logrus.Infoln("waiting for readiness drain delay...")
 
@@ -91,5 +89,5 @@ func (t *ShutdownTask) WaitForSignals() {
 }
 
 func (t *ShutdownTask) IsShuttingDown() bool {
-	return isShuttingDown.Load()
+	return config.IsShuttingDown.Load()
 }

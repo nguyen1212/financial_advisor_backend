@@ -29,6 +29,9 @@ go.work.sum
 .env
 .envrc
 
+financial_advisor_srv
+# stored file
+**/scraped/
 # Editor/IDE
 # .idea/
 # .vscode/

@@ -4,11 +4,13 @@ package specifications
 import "gorm.io/gorm"
 
 // I interface supports builder pattern only
-type I[T gorm.DB] interface {
-	Query(*T) *T
+type I interface {
+	// for any external packages that are not gorm related
+	// we can provide a dry gorm DB instance to generate SQL query
+	Query(*gorm.DB) *gorm.DB
 }
 
-type Paging interface {
+type PagingI interface {
 	Limit() int
 	Offset() int
 }

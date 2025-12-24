@@ -5,10 +5,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/financial_advisor/app/usecases/dto"
 	"github.com/financial_advisor/app/domain/repository"
 	"github.com/financial_advisor/app/external/db/gorm/specifications"
-	"github.com/financial_advisor/app/interface/api/dto"
-	"gorm.io/gorm"
 )
 
 type NewsFindUsecase interface {
@@ -19,11 +18,11 @@ type NewsFindUsecase interface {
 }
 
 type newsFindUsecase struct {
-	newsRepo repository.NewsRepository[gorm.DB]
+	newsRepo repository.NewsRepository
 }
 
 func NewNewsFindUsecase(
-	newsRepo repository.NewsRepository[gorm.DB],
+	newsRepo repository.NewsRepository,
 ) NewsFindUsecase {
 	return &newsFindUsecase{
 		newsRepo: newsRepo,

@@ -39,7 +39,7 @@ services:
     environment:
       - DEBUG=1
       - DEFAULT_REGION=ap-northeast-1
-      - SERVICES=ebs
+      - SERVICES=ebs,ec2
       - DOCKER_HOST=unix:///var/run/docker.sock
     networks:
       - financial_advisor_default

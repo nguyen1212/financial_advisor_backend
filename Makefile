@@ -13,10 +13,15 @@ gen:
 	## Go generate codes
 	@go generate ./...
 	## Swagger generate
-	@swag init -g app/external/framework/gin/route.go -o app/interface/api/docs --exclude migration
+	@swag init -g app/external/framework/gin/route.go -o app/delivery/rest/docs --exclude migration
 
 up:
 	@go run ${SRC_PATH}/cmd/srv/...
+
+build:
+	# jsoniter will be used to switch the json library instead of default one.
+	# this is for performance consideration.
+	@go build -tags=jsoniter -o financial_advisor_srv ${SRC_PATH}/cmd/srv/...
 
 migrate-create:
 	@$(eval NAME := $(shell read -p "Enter new file name: " v && echo $$v))

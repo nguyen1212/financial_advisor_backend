@@ -4,6 +4,7 @@ package config
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -12,8 +13,11 @@ const (
 	// default is 30s
 	ShutdownPeriod      = 15 * time.Second
 	ShutdownHardPeriod  = 5 * time.Second
-	ReadinessDrainDelay = 5 * time.Second
+	ReadinessDrainDelay = 0 * time.Second
 )
+
+// IsShuttingDown use to manage server shutdown states
+var IsShuttingDown atomic.Bool
 
 type LogLevel string
 
@@ -39,6 +43,8 @@ type Config struct {
 	MySQLHost     string `envconfig:"MYSQL_HOST" default:"localhost"`
 	MySQLPort     string `envconfig:"MYSQL_PORT" default:"40001"`
 	MySQLDatabase string `envconfig:"MYSQL_DATABASE" default:"financial_advisor"`
+
+	WorkerConcurrency int `envconfig:"WORKER_CONCURRENCY" default:"5"`
 }
 
 var (
@@ -60,6 +66,10 @@ func (cfg *Config) SetGlobalCtx(ctx context.Context) {
 	}
 
 	cfg.globalCtx = ctx
+}
+
+func (cfg *Config) GlobalCtx() context.Context {
+	return cfg.globalCtx
 }
 
 func Get() *Config {

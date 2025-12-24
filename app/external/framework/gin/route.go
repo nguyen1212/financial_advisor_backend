@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/financial_advisor/app/config"
-	"github.com/financial_advisor/app/interface/api/handler"
+	"github.com/financial_advisor/app/delivery/rest/handler"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,12 +21,13 @@ import (
 // @BasePath /api/v1
 func Handler() *gin.Engine {
 	var (
-		router      = gin.New()
-		newsHandler = newHandlerWrapper(handler.NewNewsHandler())
+		router           = gin.New()
+		newsHandler      = newNewsHandlerWrapper(handler.NewNewsHandler())
+		publisherHandler = newPublisherHandlerWrapper(handler.NewPublisherHandler())
 	)
 
 	router.Use(
-		Recovery(),
+		Recovery,
 		Secure(),
 		Headers,
 	)
@@ -38,7 +39,16 @@ func Handler() *gin.Engine {
 	router.GET("/", root)
 	router.GET("/api/healthz", healthz)
 
+	// News routes
 	router.GET("/api/v1/news", newsHandler.Find)
+	router.GET("/api/v1/news/:id", newsHandler.Get)
+	router.POST("/api/v1/news", newsHandler.Create)
+	router.DELETE("/api/v1/news/:id", newsHandler.Delete)
+
+	// Publisher routes
+	router.GET("/api/v1/publishers", publisherHandler.Find)
+	router.GET("/api/v1/publishers/:id", publisherHandler.Get)
+	router.POST("/api/v1/publishers", publisherHandler.Create)
 
 	return router
 }
@@ -54,6 +64,14 @@ func root(ctx *gin.Context) {
 }
 
 func healthz(c *gin.Context) {
+	if config.IsShuttingDown.Load() {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"status": "SHUTTING_DOWN",
+		})
+
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": "OK",
 	})

@@ -1,0 +1,203 @@
+basePath: /api/v1
+definitions:
+  payload.NewsCreateRequest:
+    properties:
+      category:
+        enum:
+        - finance
+        - military
+        type: string
+      url:
+        type: string
+    required:
+    - category
+    - url
+    type: object
+  payload.PublisherCreateRequest:
+    properties:
+      description:
+        type: string
+      domain:
+        type: string
+      name:
+        type: string
+    required:
+    - domain
+    - name
+    type: object
+  presenter.New:
+    properties:
+      author:
+        type: string
+      content:
+        type: string
+      id:
+        type: integer
+      published_at:
+        type: string
+      status:
+        type: string
+      thumbnail:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    type: object
+  presenter.Publisher:
+    properties:
+      Description:
+        type: string
+      domain:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is the project of stampless team
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: stampless backend
+  version: "1.0"
+paths:
+  /news:
+    get:
+      description: Return list of news from a specific day range with pagination
+      parameters:
+      - in: query
+        name: from
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      - in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/presenter.New'
+            type: array
+      summary: Find news
+      tags:
+      - news
+    post:
+      consumes:
+      - application/json
+      description: Create news article by submitting necessary data
+      parameters:
+      - description: Body of request
+        in: body
+        name: payloadBody
+        required: true
+        schema:
+          $ref: '#/definitions/payload.NewsCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/presenter.New'
+      summary: Create news
+      tags:
+      - news
+  /news/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete news article by id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Delete news
+      tags:
+      - news
+    get:
+      description: Return news detail by id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/presenter.New'
+      summary: Get news by id
+      tags:
+      - news
+  /publishers:
+    get:
+      description: Return list of publishers from a specific day range with pagination
+      parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/presenter.Publisher'
+            type: array
+      summary: Find publishers
+      tags:
+      - publishers
+    post:
+      consumes:
+      - application/json
+      description: Create publishers by submitting necessary data
+      parameters:
+      - description: Body of request
+        in: body
+        name: payloadBody
+        required: true
+        schema:
+          $ref: '#/definitions/payload.PublisherCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/presenter.Publisher'
+      summary: Create publisher
+      tags:
+      - publishers
+  /publishers/{id}:
+    get:
+      description: Return publisher detail by id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/presenter.Publisher'
+      summary: Get publisher by id
+      tags:
+      - news
+swagger: "2.0"
