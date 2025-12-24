@@ -53,44 +53,13 @@ jobs:
               sudo newgrp docker
             fi
 
-            # Install Nginx if not exists
-            if ! command -v nginx &> /dev/null; then
-              sudo dnf install -y nginx
-              sudo systemctl enable nginx
-              sudo systemctl start nginx
-            fi
-
-            # Configure Nginx
-            # sudo tee /etc/nginx/conf.d/go-app.conf << 'EOL'
-            # server {
-            #     listen 80;
-            #     server_name _;
-            #
-            #     location / {
-            #         proxy_pass http://localhost:8080;
-            #         proxy_http_version 1.1;
-            #         proxy_set_header Upgrade $http_upgrade;
-            #         proxy_set_header Connection 'upgrade';
-            #         proxy_set_header Host $host;
-            #         proxy_cache_bypass $http_upgrade;
-            #         proxy_set_header X-Real-IP $remote_addr;
-            #         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            #     }
-            # }
-            # EOL
-
-            # Test Nginx config
-            # sudo nginx -t
-
-            # Reload Nginx
-            # sudo systemctl reload nginx
-
-            # Pull latest image
-            sudo docker pull ${{ env.DOCKER_IMAGE }}:latest
+            # Login to dockerhub
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin |
+            docker pull podron/financial-advisor:latest
 
             # Stop and remove old container
-            sudo docker stop ${{ env.CONTAINER_NAME }} || true
-            sudo docker rm ${{ env.CONTAINER_NAME }} || true
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
 
             # Run new container
             sudo docker run -d --name ${{ env.CONTAINER_NAME }} \
