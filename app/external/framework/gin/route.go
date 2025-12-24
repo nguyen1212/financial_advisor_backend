@@ -30,11 +30,8 @@ func Handler() *gin.Engine {
 		Recovery,
 		Secure(),
 		Headers,
+		CORS(config.Get().Cors),
 	)
-
-	if config.Get().ENV == "development" {
-		router.Use(CORS(config.Get().Cors))
-	}
 
 	router.GET("/", root)
 	router.GET("/api/healthz", healthz)

@@ -10,7 +10,6 @@ WORKDIR /build
 # Install sql-migrate
  RUN set -ex && \
    go install github.com/rubenv/sql-migrate/...@v1.7.0 && \
-   mkdir -p /build && \
    cp -rf /go/bin/sql-migrate /build/sql-migrate
 
 
@@ -36,7 +35,8 @@ ENV ENV=$ENV \
   MYSQL_PASSWORD=$MYSQL_PASSWORD \
   MYSQL_HOST=$MYSQL_HOST \
   MYSQL_PORT=$MYSQL_PORT \ 
-  MYSQL_DATABASE=$MYSQL_DATABASE
+  MYSQL_DATABASE=$MYSQL_DATABASE \
+  CORS_ALLOWED_HOSTS=$CORS_ALLOWED_HOSTS
 
 WORKDIR /app
 
@@ -47,15 +47,12 @@ RUN adduser -D -u 1000 appuser -G appgroup
 
 RUN chown -R appuser:appgroup /app
 
-COPY --from=builder /build/financial_advisor_srv /
-COPY --from=builder /build/sql-migrate /app
-COPY --from=builder /build/Makefile /app/
+COPY --from=builder /build/financial_advisor_srv /app/
+COPY --from=builder /build/sql-migrate /app/
 COPY --from=builder /build/migration /app/
-
-RUN chmod +x /financial_advisor_srv
 
 USER appuser
 
-CMD ["sh", "-c", "./sql-migrate up -env=$ENV -config=dbconfig.yml; /financial_advisor_srv "]
+CMD ["sh", "-c", "./sql-migrate up -env=$ENV -config=dbconfig.yml; ./financial_advisor_srv "]
 
 

@@ -44,7 +44,7 @@ type Config struct {
 	MySQLPort     string `envconfig:"MYSQL_PORT" default:"40001"`
 	MySQLDatabase string `envconfig:"MYSQL_DATABASE" default:"financial_advisor"`
 
-	WorkerConcurrency int `envconfig:"WORKER_CONCURRENCY" default:"5"`
+	WorkerConcurrency int `envconfig:"WORKER_CONCURRENCY" default:"2"`
 }
 
 var (
