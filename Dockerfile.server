@@ -2,11 +2,17 @@ FROM golang:1.24-alpine AS builder
 
 ENV GO111MODULE=on \
   GOOS=linux \
-  GOARCH=amd64 \
   GOCACHE=/go-cache \
   GOMODCACHE=/gomod-cache
 
 WORKDIR /build
+
+# Install sql-migrate
+ RUN set -ex && \
+   go install github.com/rubenv/sql-migrate/...@v1.7.0 && \
+   mkdir -p /build && \
+   cp -rf /go/bin/sql-migrate /build/sql-migrate
+
 
 COPY go.* .
 
@@ -42,11 +48,14 @@ RUN adduser -D -u 1000 appuser -G appgroup
 RUN chown -R appuser:appgroup /app
 
 COPY --from=builder /build/financial_advisor_srv /
+COPY --from=builder /build/sql-migrate /app
+COPY --from=builder /build/Makefile /app/
+COPY --from=builder /build/migration /app/
 
 RUN chmod +x /financial_advisor_srv
 
 USER appuser
 
-CMD ["sh", "-c", "/financial_advisor_srv"]
+CMD ["sh", "-c", "./sql-migrate up -env=$ENV -config=dbconfig.yml; /financial_advisor_srv "]
 
 
