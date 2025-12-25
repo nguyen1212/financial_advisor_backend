@@ -112,9 +112,11 @@ jobs:
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             docker pull podron/financial-advisor:latest
 
+            sudo chown -R 1000:1000 /mnt/data
+
             # Run new container
             sudo docker run -d --name ${{ env.CONTAINER_NAME }} \
-            --mount type=bind,src=/mnt/data,dst=/app/data \
+              --mount type=bind,src=/mnt/data,dst=/app/data \
               -p ${{ secrets.HTTP_PORT }}:${{ secrets.HTTP_PORT }} \
               -e ENV=${{ secrets.ENV }}\
               -e HTTP_PORT=${{ secrets.HTTP_PORT }} \
