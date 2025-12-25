@@ -15,7 +15,7 @@ func Test_NewEphemeralManager(t *testing.T) {
 	t.Parallel()
 
 	mProcessors := map[queue.MessageType]Processor{
-		queue.MessageTypeWebScrapper: processor.NewWebScrapperProcessor(nil),
+		queue.MessageTypeWebScrapper: processor.NewWebScrapperProcessor(nil, nil),
 	}
 
 	assert.Equal(

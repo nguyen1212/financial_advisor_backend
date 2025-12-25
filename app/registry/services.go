@@ -13,10 +13,12 @@ func InjectEphemeralConsumerService() consumer.Manager {
 		mUcs = map[entity.WebDomain]usecases.WebScrapperUsecase{
 			entity.WebDomainVnExpress: InjectVnExpressScrapperUsecase(),
 		}
+		fallbackUc = InjectFallbackScrapperUsecase()
 
 		mProcessors = map[queue.MessageType]consumer.Processor{
-			queue.MessageTypeWebScrapper: processor.NewWebScrapperProcessor(mUcs),
+			queue.MessageTypeWebScrapper: processor.NewWebScrapperProcessor(mUcs, fallbackUc),
 		}
+
 		consumerManager = consumer.NewEphemeralManager(
 			mProcessors,
 		)

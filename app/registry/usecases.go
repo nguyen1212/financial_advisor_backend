@@ -75,3 +75,11 @@ func InjectPublisherGetUsecase() usecases.PublisherGetUsecase {
 		mysql.NewPublisherRepository(db),
 	)
 }
+
+func InjectFallbackScrapperUsecase() usecases.FallbackScrapperUsecase {
+	db := gorm.Get()
+
+	return usecases.NewFallbackScrapperUsecase(
+		mysql.NewNewsRepository(db),
+	)
+}

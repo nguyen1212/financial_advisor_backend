@@ -81,6 +81,13 @@ paths:
       - in: query
         name: size
         type: integer
+      - enum:
+        - added
+        - synced
+        - failed
+        in: query
+        name: status
+        type: string
       - in: query
         name: to
         type: string

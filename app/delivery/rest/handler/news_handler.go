@@ -41,6 +41,10 @@ func (hdl *NewsHandler) Find(
 		)
 	}
 
+	if err := payl.Validate(); err != nil {
+		return nil, nil, err
+	}
+
 	news, err := uc.Execute(req.Context(), payl.ToDTO())
 	if err != nil {
 		return nil, nil, err

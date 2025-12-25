@@ -22,8 +22,23 @@ func (status NewsStatus) String() string {
 		return "added"
 	case NewsStatusSynced:
 		return "synced"
+	case NewsStatusFailed:
+		return "failed"
 	default:
 		return "unknown"
+	}
+}
+
+func ToNewsStatus(status string) NewsStatus {
+	switch status {
+	case "added":
+		return NewsStatusAdded
+	case "synced":
+		return NewsStatusSynced
+	case "failed":
+		return NewsStatusFailed
+	default:
+		return NewsStatusUnknown
 	}
 }
 
@@ -82,7 +97,7 @@ type News struct {
 
 func (news *News) StoragePath() string {
 	return fmt.Sprintf(
-		"scraped/publishers/%d/news/%s.txt",
+		"data/scraped/publishers/%d/news/%s.txt",
 		news.PublisherID,
 		hex.EncodeToString(news.HashedURL),
 	)
@@ -90,7 +105,7 @@ func (news *News) StoragePath() string {
 
 func (news *News) StorageDir() string {
 	return fmt.Sprintf(
-		"scraped/publishers/%d/news",
+		"data/scraped/publishers/%d/news",
 		news.PublisherID,
 	)
 }
@@ -103,5 +118,6 @@ func (news *News) ToMap() map[string]any {
 		"published_at": news.PublishedAt,
 		"status":       news.Status,
 		"title":        news.Title,
+		"thumbnail":    news.Thumbnail,
 	}
 }

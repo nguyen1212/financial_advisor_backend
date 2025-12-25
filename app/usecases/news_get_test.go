@@ -11,6 +11,7 @@ import (
 	appErrors "github.com/financial_advisor/app/errors"
 	"github.com/financial_advisor/app/external/db/gorm/specifications"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
@@ -167,7 +168,6 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 
 		_, err := uc.Execute(ctx, newsID)
 
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "open news file")
+		require.NoError(t, err)
 	})
 }

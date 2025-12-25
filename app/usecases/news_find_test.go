@@ -62,7 +62,7 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Find(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To),
+			specifications.NewNewsByDate(req.From, req.To, nil),
 		).Return(newsEntities, nil)
 
 		result, err := uc.Execute(ctx, req)
@@ -94,7 +94,7 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Find(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To),
+			specifications.NewNewsByDate(req.From, req.To, nil),
 		).Return([]entity.News{}, nil)
 
 		result, err := uc.Execute(ctx, req)
@@ -124,7 +124,7 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Find(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To),
+			specifications.NewNewsByDate(req.From, req.To, nil),
 		).Return(nil, repoErr)
 
 		_, err := uc.Execute(ctx, req)
@@ -159,7 +159,7 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Find(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To),
+			specifications.NewNewsByDate(req.From, req.To, nil),
 		).Return(newsEntities, nil)
 
 		result, err := uc.Execute(ctx, req)

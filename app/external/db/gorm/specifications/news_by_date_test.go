@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/financial_advisor/app/domain/entity"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -66,12 +67,14 @@ func TestNewNewsByDate(t *testing.T) {
 		name      string
 		startDate time.Time
 		endDate   time.Time
+		status    *entity.NewsStatus
 		want      *newsByDate
 	}{
 		{
 			name:      "with both dates",
 			startDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 			endDate:   time.Date(2024, 1, 31, 23, 59, 59, 0, time.UTC),
+			status:    nil,
 			want: &newsByDate{
 				startDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 				endDate:   time.Date(2024, 1, 31, 23, 59, 59, 0, time.UTC),
@@ -81,6 +84,7 @@ func TestNewNewsByDate(t *testing.T) {
 			name:      "with zero dates",
 			startDate: time.Time{},
 			endDate:   time.Time{},
+			status:    nil,
 			want: &newsByDate{
 				startDate: time.Time{},
 				endDate:   time.Time{},
@@ -92,7 +96,7 @@ func TestNewNewsByDate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := NewNewsByDate(tt.startDate, tt.endDate).(*newsByDate)
+			result := NewNewsByDate(tt.startDate, tt.endDate, tt.status).(*newsByDate)
 			assert.Equal(t, tt.want, result)
 		})
 	}

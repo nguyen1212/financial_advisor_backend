@@ -51,6 +51,16 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "added",
+                            "synced",
+                            "failed"
+                        ],
+                        "type": "string",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "to",
                         "in": "query"

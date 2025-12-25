@@ -38,6 +38,7 @@ func ToDtoNews(news entity.News) News {
 type NewsFindRequest struct {
 	From   time.Time
 	To     time.Time
+	Status *entity.NewsStatus
 	Paging PagingRequest
 }
 

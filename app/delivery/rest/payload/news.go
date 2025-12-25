@@ -9,13 +9,18 @@ import (
 )
 
 type NewsFindRequest struct {
-	From time.Time `form:"from"`
-	To   time.Time `form:"to"`
+	From   time.Time `form:"from"`
+	To     time.Time `form:"to"`
+	Status string    `form:"status" validate:"omitempty,oneof=added synced failed"`
 	Paging
 }
 
+func (r NewsFindRequest) Validate() error {
+	return validate(r)
+}
+
 func (r NewsFindRequest) ToDTO() dto.NewsFindRequest {
-	return dto.NewsFindRequest{
+	d := dto.NewsFindRequest{
 		From: r.From,
 		To:   r.To,
 		Paging: dto.PagingRequest{
@@ -23,6 +28,14 @@ func (r NewsFindRequest) ToDTO() dto.NewsFindRequest {
 			Size: r.Size,
 		},
 	}
+
+	if r.Status != "" {
+		status := entity.ToNewsStatus(r.Status)
+
+		d.Status = &status
+	}
+
+	return d
 }
 
 type NewsCreateRequest struct {

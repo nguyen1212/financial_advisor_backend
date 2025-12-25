@@ -18,14 +18,15 @@ func Test_NewWebScrapperProcessor(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	webScrapperUcMock := mock.NewMockWebScrapperUsecase(mockCtrl)
+	fallbackUcMock := mock.NewMockFallbackScrapperUsecase(mockCtrl)
 	mUc := map[entity.WebDomain]usecases.WebScrapperUsecase{
 		entity.WebDomainVnExpress: webScrapperUcMock,
 	}
 
 	assert.Equal(
 		t,
-		WebScrapperProcessor{mUsecases: mUc},
-		NewWebScrapperProcessor(mUc),
+		WebScrapperProcessor{mUsecases: mUc, fallback: fallbackUcMock},
+		NewWebScrapperProcessor(mUc, fallbackUcMock),
 	)
 }
 
@@ -36,7 +37,7 @@ func Test_WebScrapperProcessor_Execute(t *testing.T) {
 
 		var (
 			msg       = []byte(`invalid-json`)
-			processor = NewWebScrapperProcessor(nil)
+			processor = NewWebScrapperProcessor(nil, nil)
 			wantErr   = errors.New("invalid character 'i' looking for beginning of value")
 		)
 
@@ -45,15 +46,21 @@ func Test_WebScrapperProcessor_Execute(t *testing.T) {
 		assert.EqualError(t, wantErr, err.Error())
 	})
 
-	t.Run("failed - not found usecases for domain", func(t *testing.T) {
+	t.Run("failed - not found usecases for domain, fallback to default and fail", func(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
 		var (
-			msg       = []byte(`{"domain":"unknown-domain","url":"http://example.com"}`)
-			processor = NewWebScrapperProcessor(nil)
-			wantErr   = errors.New("usecase for domain not found")
+			msg        = []byte(`{"domain":"unknown-domain","url":"http://example.com"}`)
+			fallbackUc = mock.NewMockFallbackScrapperUsecase(mockCtrl)
+			processor  = NewWebScrapperProcessor(nil, fallbackUc)
+			wantErr    = errors.New("usecase for domain not found")
 		)
+
+		fallbackUc.EXPECT().Execute(context.Background(), entity.WebScrapperJob{
+			Domain: "unknown-domain",
+			URL:    "http://example.com",
+		}).Return(wantErr)
 
 		err := processor.Execute(msg)
 
@@ -73,7 +80,7 @@ func Test_WebScrapperProcessor_Execute(t *testing.T) {
 			}
 			processor = NewWebScrapperProcessor(map[entity.WebDomain]usecases.WebScrapperUsecase{
 				entity.WebDomainVnExpress: uc,
-			})
+			}, nil)
 			wantErr = errors.New("failed to scrape web page")
 		)
 
@@ -97,7 +104,7 @@ func Test_WebScrapperProcessor_Execute(t *testing.T) {
 			}
 			processor = NewWebScrapperProcessor(map[entity.WebDomain]usecases.WebScrapperUsecase{
 				entity.WebDomainVnExpress: uc,
-			})
+			}, nil)
 		)
 
 		uc.EXPECT().Execute(context.Background(), job).Return(nil)

@@ -55,8 +55,7 @@ func TestHealthz(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
+			// NOTE: do not set parallel because each test use the same shared IsShuttingDown
 			// Set the shutdown state
 			config.IsShuttingDown.Store(tt.isShuttingDown)
 			defer config.IsShuttingDown.Store(false) // Reset after test
@@ -72,3 +71,4 @@ func TestHealthz(t *testing.T) {
 		})
 	}
 }
+

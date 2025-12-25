@@ -71,6 +71,7 @@ func (uc vnExpressScrapper) Execute(
 		author        string
 		publishedDate time.Time
 		title         string
+		thumbnailURL  string
 	)
 
 	content.Grow(1000)
@@ -79,6 +80,7 @@ func (uc vnExpressScrapper) Execute(
 	c.OnHTML("head", func(e *colly.HTMLElement) {
 		// itemProp := e.ChildAttr("meta", "itemprop")
 		title = e.ChildAttr("meta[itemprop='headline']", "content")
+		thumbnailURL = e.ChildAttr("meta[itemprop='thumbnailUrl']", "content")
 	})
 
 	// extract content
@@ -128,6 +130,7 @@ func (uc vnExpressScrapper) Execute(
 			content,
 			author,
 			publishedDate,
+			thumbnailURL,
 		); err != nil {
 			logrus.WithField("news_id", job.NewsID).
 				WithField("url", job.URL).
@@ -148,6 +151,7 @@ func (uc vnExpressScrapper) saveFile(
 	content *strings.Builder,
 	author string,
 	publishedDate time.Time,
+	thumbnailURL string,
 ) error {
 	news, err := uc.newsRepo.Get(ctx, specifications.NewNewsByID(newsID, "Publisher"))
 	if err != nil {
@@ -195,6 +199,7 @@ func (uc vnExpressScrapper) saveFile(
 	news.PublishedAt = &publishedDate
 	news.Status = entity.NewsStatusSynced
 	news.Title = title
+	news.Thumbnail = thumbnailURL
 
 	if err = uc.newsRepo.Update(ctx, &news); err != nil {
 		return fmt.Errorf("update news after saving extracted content: %w", err)

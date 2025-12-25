@@ -10,8 +10,52 @@ env:
   CONTAINER_NAME: financial-advisor-server
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    env:
+      TEST_RESULTS: /tmp/test-results
+    steps:
+      - name: Set up Go 1.24
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install additional commands
+        run: |
+          go install github.com/jstemmer/go-junit-report@latest
+
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: |
+          make mod
+
+      - name: Go test
+        run: |
+          make test
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.TEST_RESULTS }}
+
   build:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v4
         name: Checkout Code
@@ -65,8 +109,9 @@ jobs:
             docker image prune -f
             
             # Login to dockerhub
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin |
-            docker pull podron/financial-advisor:latest
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            docker pull podron/financial-advisor:latest |
+            docker logout
 
             # Run new container
             sudo docker run -d --name ${{ env.CONTAINER_NAME }} \

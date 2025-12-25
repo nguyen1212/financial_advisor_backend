@@ -38,7 +38,7 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 			ctx = context.Background()
 			req = dto.PublisherCreateRequest{
 				Name:        "Test Publisher",
-				Domain:      "https://example.com",
+				Domain:      "example.com",
 				Description: "A test publisher",
 			}
 
@@ -84,9 +84,10 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 			ctx = context.Background()
 			req = dto.PublisherCreateRequest{
 				Name:        "Test Publisher",
-				Domain:      "https://example.com",
+				Domain:      "example.com",
 				Description: "A test publisher",
 			}
+			forbiddenErr appErrors.SystemError
 
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
 			uc            = &publisherCreateUsecase{publisherRepo: publisherRepo}
@@ -101,9 +102,8 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 		_, err := uc.Execute(ctx, req)
 
 		assert.Error(t, err)
-		var forbiddenErr appErrors.SystemError
 		assert.True(t, errors.As(err, &forbiddenErr))
-		assert.Equal(t, appErrors.ErrorTypeForbidden, forbiddenErr.Type())
+		assert.Equal(t, appErrors.ErrorTypeConflicted, forbiddenErr.Type())
 	})
 
 	t.Run("count error", func(t *testing.T) {
@@ -116,7 +116,7 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 			ctx = context.Background()
 			req = dto.PublisherCreateRequest{
 				Name:        "Test Publisher",
-				Domain:      "https://example.com",
+				Domain:      "example.com",
 				Description: "A test publisher",
 			}
 
@@ -147,7 +147,7 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 			ctx = context.Background()
 			req = dto.PublisherCreateRequest{
 				Name:        "Test Publisher",
-				Domain:      "https://example.com",
+				Domain:      "example.com",
 				Description: "A test publisher",
 			}
 
@@ -176,46 +176,4 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "create new publisher")
 	})
-
-	t.Run("success with subdomain", func(t *testing.T) {
-		t.Parallel()
-
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		var (
-			ctx = context.Background()
-			req = dto.PublisherCreateRequest{
-				Name:   "Test Publisher",
-				Domain: "https://www.example.com/path",
-			}
-
-			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			uc            = &publisherCreateUsecase{publisherRepo: publisherRepo}
-		)
-
-		// Mock count returns 0 (no existing publisher)
-		publisherRepo.EXPECT().Count(
-			ctx,
-			specifications.NewPublisherByDomain("example.com"),
-		).Return(int64(0), nil)
-
-		// Mock successful create
-		publisherRepo.EXPECT().Create(
-			ctx,
-			&entity.Publisher{
-				Name:   req.Name,
-				Domain: "example.com", // Normalized domain from www.example.com/path
-			},
-		).DoAndReturn(func(ctx context.Context, publisher *entity.Publisher) error {
-			publisher.ID = 1
-			return nil
-		})
-
-		result, err := uc.Execute(ctx, req)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "example.com", result.Domain)
-	})
 }
-

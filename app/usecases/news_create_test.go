@@ -257,7 +257,7 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		assert.Contains(t, badRequestErr.Message(), "invalid URL domain")
 	})
 
-	t.Run("publisher not found", func(t *testing.T) {
+	t.Run("success - create new publisher", func(t *testing.T) {
 		t.Parallel()
 
 		mockCtrl := gomock.NewController(t)
@@ -284,16 +284,95 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 			hashedURL = []byte("hashed-url")
 		)
 
+		// Mock validation steps
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
 		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
 		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("unknown.com")).Return(entity.Publisher{}, appErrors.ErrNotFound)
 
+		// Mock publisher creation
+		publisherRepo.EXPECT().Create(ctx, &entity.Publisher{
+			Name:   "unknown.com",
+			Domain: "unknown.com",
+		}).DoAndReturn(func(ctx context.Context, publisher *entity.Publisher) error {
+			publisher.ID = 2
+			return nil
+		})
+
+		// Mock successful news create
+		newsRepo.EXPECT().Create(ctx, &entity.News{
+			URL:         req.URL,
+			HashedURL:   hashedURL,
+			Status:      entity.NewsStatusAdded,
+			Category:    req.Category,
+			PublisherID: 2, // New publisher ID
+		}).DoAndReturn(func(ctx context.Context, news *entity.News) error {
+			news.ID = 1
+			return nil
+		})
+
+		// Mock successful job enqueue
+		expectedJob := entity.WebScrapperJob{
+			Domain: entity.WebDomain("unknown.com"),
+			URL:    req.URL,
+			NewsID: 1,
+		}
+		expectedJobBytes, _ := json.Marshal(expectedJob)
+		jobQueue.EXPECT().Enqueue(queue.Message{
+			Type: queue.MessageTypeWebScrapper,
+			Body: expectedJobBytes,
+		}).Return(nil)
+
+		result, err := uc.Execute(ctx, req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, uint64(1), result.ID)
+		assert.Equal(t, req.URL, result.URL)
+		assert.Equal(t, entity.NewsStatusAdded.String(), result.Status)
+	})
+
+	t.Run("error - publisher creation fails", func(t *testing.T) {
+		t.Parallel()
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		var (
+			ctx = context.Background()
+			req = dto.NewsCreateRequest{
+				URL:      "https://newpublisher.com/news/article-1",
+				Category: entity.NewsCategoryFinance,
+			}
+
+			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
+			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
+			jobQueue      = queueMock.NewMockI(mockCtrl)
+			hasher        = hasherMock.NewMockI(mockCtrl)
+			uc            = &newsCreateUsecase{
+				newsRepo:      newsRepo,
+				publisherRepo: publisherRepo,
+				jobQueue:      jobQueue,
+				hasher:        hasher,
+			}
+
+			hashedURL   = []byte("hashed-url")
+			publisherErr = errors.New("database error")
+		)
+
+		// Mock validation steps
+		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
+		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("newpublisher.com")).Return(entity.Publisher{}, appErrors.ErrNotFound)
+
+		// Mock publisher creation failure
+		publisherRepo.EXPECT().Create(ctx, &entity.Publisher{
+			Name:   "newpublisher.com",
+			Domain: "newpublisher.com",
+		}).Return(publisherErr)
+
 		_, err := uc.Execute(ctx, req)
 
 		assert.Error(t, err)
-		var badRequestErr appErrors.SystemError
-		assert.True(t, errors.As(err, &badRequestErr))
-		assert.Contains(t, badRequestErr.Message(), "publisher not found")
+		assert.Contains(t, err.Error(), "create publisher")
 	})
 
 	t.Run("publisher repo error", func(t *testing.T) {
@@ -496,6 +575,217 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "enqueue web scrapper job")
+	})
+
+	t.Run("success - with different news category", func(t *testing.T) {
+		t.Parallel()
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		var (
+			ctx = context.Background()
+			req = dto.NewsCreateRequest{
+				URL:      "https://example.com/military/defense-news",
+				Category: entity.NewsCategoryMilitary,
+			}
+
+			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
+			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
+			jobQueue      = queueMock.NewMockI(mockCtrl)
+			hasher        = hasherMock.NewMockI(mockCtrl)
+			uc            = &newsCreateUsecase{
+				newsRepo:      newsRepo,
+				publisherRepo: publisherRepo,
+				jobQueue:      jobQueue,
+				hasher:        hasher,
+			}
+
+			hashedURL = []byte("hashed-url-military")
+			publisher = entity.Publisher{
+				ID:     1,
+				Name:   "Example Publisher",
+				Domain: "example.com",
+			}
+		)
+
+		// Mock validation steps
+		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
+		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+
+		// Mock successful create
+		newsRepo.EXPECT().Create(ctx, &entity.News{
+			URL:         req.URL,
+			HashedURL:   hashedURL,
+			Status:      entity.NewsStatusAdded,
+			Category:    req.Category,
+			PublisherID: publisher.ID,
+		}).DoAndReturn(func(ctx context.Context, news *entity.News) error {
+			news.ID = 1
+			return nil
+		})
+
+		// Mock successful job enqueue
+		expectedJob := entity.WebScrapperJob{
+			Domain: entity.WebDomain(publisher.Domain),
+			URL:    req.URL,
+			NewsID: 1,
+		}
+		expectedJobBytes, _ := json.Marshal(expectedJob)
+		jobQueue.EXPECT().Enqueue(queue.Message{
+			Type: queue.MessageTypeWebScrapper,
+			Body: expectedJobBytes,
+		}).Return(nil)
+
+		result, err := uc.Execute(ctx, req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, uint64(1), result.ID)
+		assert.Equal(t, req.URL, result.URL)
+		assert.Equal(t, entity.NewsCategoryMilitary.String(), result.Category)
+		assert.Equal(t, entity.NewsStatusAdded.String(), result.Status)
+	})
+
+	t.Run("success - URL with query parameters", func(t *testing.T) {
+		t.Parallel()
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		var (
+			ctx = context.Background()
+			req = dto.NewsCreateRequest{
+				URL:      "https://example.com/news?id=123&utm_source=test",
+				Category: entity.NewsCategoryFinance,
+			}
+
+			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
+			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
+			jobQueue      = queueMock.NewMockI(mockCtrl)
+			hasher        = hasherMock.NewMockI(mockCtrl)
+			uc            = &newsCreateUsecase{
+				newsRepo:      newsRepo,
+				publisherRepo: publisherRepo,
+				jobQueue:      jobQueue,
+				hasher:        hasher,
+			}
+
+			hashedURL = []byte("hashed-url-with-params")
+			publisher = entity.Publisher{
+				ID:     1,
+				Name:   "Example Publisher",
+				Domain: "example.com",
+			}
+		)
+
+		// Mock validation steps
+		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
+		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+
+		// Mock successful create
+		newsRepo.EXPECT().Create(ctx, &entity.News{
+			URL:         req.URL,
+			HashedURL:   hashedURL,
+			Status:      entity.NewsStatusAdded,
+			Category:    req.Category,
+			PublisherID: publisher.ID,
+		}).DoAndReturn(func(ctx context.Context, news *entity.News) error {
+			news.ID = 1
+			return nil
+		})
+
+		// Mock successful job enqueue
+		expectedJob := entity.WebScrapperJob{
+			Domain: entity.WebDomain(publisher.Domain),
+			URL:    req.URL,
+			NewsID: 1,
+		}
+		expectedJobBytes, _ := json.Marshal(expectedJob)
+		jobQueue.EXPECT().Enqueue(queue.Message{
+			Type: queue.MessageTypeWebScrapper,
+			Body: expectedJobBytes,
+		}).Return(nil)
+
+		result, err := uc.Execute(ctx, req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, req.URL, result.URL) // Should preserve full URL with params
+		assert.Equal(t, entity.NewsStatusAdded.String(), result.Status)
+	})
+
+	t.Run("success - subdomain URL", func(t *testing.T) {
+		t.Parallel()
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		var (
+			ctx = context.Background()
+			req = dto.NewsCreateRequest{
+				URL:      "https://news.subdomain.example.com/article",
+				Category: entity.NewsCategoryFinance,
+			}
+
+			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
+			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
+			jobQueue      = queueMock.NewMockI(mockCtrl)
+			hasher        = hasherMock.NewMockI(mockCtrl)
+			uc            = &newsCreateUsecase{
+				newsRepo:      newsRepo,
+				publisherRepo: publisherRepo,
+				jobQueue:      jobQueue,
+				hasher:        hasher,
+			}
+
+			hashedURL = []byte("hashed-subdomain-url")
+		)
+
+		// Mock validation steps
+		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
+		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
+		// subdomain.example.com should resolve to example.com as the effective TLD+1
+		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(entity.Publisher{}, appErrors.ErrNotFound)
+
+		// Mock publisher creation for the main domain
+		publisherRepo.EXPECT().Create(ctx, &entity.Publisher{
+			Name:   "example.com",
+			Domain: "example.com",
+		}).DoAndReturn(func(ctx context.Context, publisher *entity.Publisher) error {
+			publisher.ID = 3
+			return nil
+		})
+
+		// Mock successful news create
+		newsRepo.EXPECT().Create(ctx, &entity.News{
+			URL:         req.URL,
+			HashedURL:   hashedURL,
+			Status:      entity.NewsStatusAdded,
+			Category:    req.Category,
+			PublisherID: 3,
+		}).DoAndReturn(func(ctx context.Context, news *entity.News) error {
+			news.ID = 1
+			return nil
+		})
+
+		// Mock successful job enqueue
+		expectedJob := entity.WebScrapperJob{
+			Domain: entity.WebDomain("example.com"), // Should use main domain, not subdomain
+			URL:    req.URL,
+			NewsID: 1,
+		}
+		expectedJobBytes, _ := json.Marshal(expectedJob)
+		jobQueue.EXPECT().Enqueue(queue.Message{
+			Type: queue.MessageTypeWebScrapper,
+			Body: expectedJobBytes,
+		}).Return(nil)
+
+		result, err := uc.Execute(ctx, req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, req.URL, result.URL)
+		assert.Equal(t, entity.NewsStatusAdded.String(), result.Status)
 	})
 }
 

@@ -58,6 +58,11 @@ func Test_NewsStatus_String(t *testing.T) {
 			expected: "synced",
 		},
 		{
+			name:     "Failed status",
+			status:   NewsStatusFailed,
+			expected: "failed",
+		},
+		{
 			name:     "Unknown status",
 			status:   NewsStatusUnknown,
 			expected: "unknown",

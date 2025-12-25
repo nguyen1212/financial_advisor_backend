@@ -123,6 +123,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 		content       string
 		author        string
 		publishedDate time.Time
+		thumbnailURL  string
 		setupMock     func(*mock.MockNewsRepository)
 		setupEnv      func()
 		expectedError string
@@ -135,6 +136,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 			content:       "This is the news content",
 			author:        "John Doe",
 			publishedDate: time.Date(2023, 12, 25, 10, 30, 0, 0, time.UTC),
+			thumbnailURL:  "https://example.com/thumbnail.jpg",
 			setupMock: func(repo *mock.MockNewsRepository) {
 				news := entity.News{
 					ID:          123,
@@ -159,6 +161,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 					assert.Equal(t, entity.NewsStatusSynced, updateNews.Status)
 					assert.Equal(t, "Test News Title", updateNews.Title)
 					assert.Equal(t, "John Doe", updateNews.Author)
+					assert.Equal(t, "https://example.com/thumbnail.jpg", updateNews.Thumbnail)
 					assert.NotNil(t, updateNews.PublishedAt)
 					assert.NotEmpty(t, updateNews.FilePath)
 					assert.Greater(t, updateNews.FileSize, int64(0))
@@ -172,8 +175,9 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 			expectNoError: true,
 		},
 		{
-			name:   "error - get news fails",
-			newsID: 456,
+			name:         "error - get news fails",
+			newsID:       456,
+			thumbnailURL: "https://example.com/thumb.jpg",
 			setupMock: func(repo *mock.MockNewsRepository) {
 				repo.EXPECT().Get(gomock.Any(), specifications.NewNewsByID(uint64(456), "Publisher")).Return(entity.News{}, fmt.Errorf("news not found"))
 			},
@@ -186,6 +190,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 			content:       "Test content",
 			author:        "Test Author",
 			publishedDate: time.Now(),
+			thumbnailURL:  "https://example.com/thumb2.jpg",
 			setupMock: func(repo *mock.MockNewsRepository) {
 				news := entity.News{
 					ID:          789,
@@ -209,6 +214,106 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 				os.Setenv("STORAGE_ROOT", tempDir)
 			},
 			expectedError: "update news after saving extracted content: database error",
+		},
+		{
+			name:          "success - with zero published date",
+			newsID:        999,
+			title:         "Test Title",
+			content:       "Test content",
+			author:        "Test Author",
+			publishedDate: time.Time{}, // Zero time
+			thumbnailURL:  "https://example.com/thumb.jpg",
+			setupMock: func(repo *mock.MockNewsRepository) {
+				news := entity.News{
+					ID:          999,
+					PublisherID: 1,
+					HashedURL:   []byte("test-hash"),
+					Status:      entity.NewsStatusAdded,
+				}
+
+				repo.EXPECT().Get(gomock.Any(), specifications.NewNewsByID(uint64(999), "Publisher")).Return(news, nil)
+				repo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updateNews *entity.News) error {
+					assert.Equal(t, entity.NewsStatusSynced, updateNews.Status)
+					assert.Equal(t, "Test Title", updateNews.Title)
+					assert.Equal(t, "Test Author", updateNews.Author)
+					assert.Equal(t, "https://example.com/thumb.jpg", updateNews.Thumbnail)
+					assert.NotNil(t, updateNews.PublishedAt)
+					assert.NotEmpty(t, updateNews.FilePath)
+					assert.Greater(t, updateNews.FileSize, int64(0))
+					return nil
+				})
+			},
+			setupEnv: func() {
+				os.Setenv("STORAGE_ROOT", tempDir)
+			},
+			expectNoError: true,
+		},
+		{
+			name:          "success - file stat fails but continues",
+			newsID:        111,
+			title:         "Test News Title",
+			content:       "This is the news content",
+			author:        "John Doe",
+			publishedDate: time.Date(2023, 12, 25, 10, 30, 0, 0, time.UTC),
+			thumbnailURL:  "https://example.com/thumbnail.jpg",
+			setupMock: func(repo *mock.MockNewsRepository) {
+				news := entity.News{
+					ID:          111,
+					PublisherID: 1,
+					HashedURL:   []byte("test-hash"),
+					Status:      entity.NewsStatusAdded,
+				}
+
+				repo.EXPECT().Get(gomock.Any(), specifications.NewNewsByID(uint64(111), "Publisher")).Return(news, nil)
+				repo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updateNews *entity.News) error {
+					// Verify the updated fields and that FileSize is greater than 0
+					assert.Equal(t, entity.NewsStatusSynced, updateNews.Status)
+					assert.Equal(t, "Test News Title", updateNews.Title)
+					assert.Equal(t, "John Doe", updateNews.Author)
+					assert.Equal(t, "https://example.com/thumbnail.jpg", updateNews.Thumbnail)
+					assert.NotNil(t, updateNews.PublishedAt)
+					assert.NotEmpty(t, updateNews.FilePath)
+					assert.Greater(t, updateNews.FileSize, int64(0))
+					return nil
+				})
+			},
+			setupEnv: func() {
+				os.Setenv("STORAGE_ROOT", tempDir)
+			},
+			expectNoError: true,
+		},
+		{
+			name:          "success - empty content",
+			newsID:        222,
+			title:         "Empty News",
+			content:       "",
+			author:        "",
+			publishedDate: time.Date(2023, 12, 25, 10, 30, 0, 0, time.UTC),
+			thumbnailURL:  "",
+			setupMock: func(repo *mock.MockNewsRepository) {
+				news := entity.News{
+					ID:          222,
+					PublisherID: 1,
+					HashedURL:   []byte("test-hash"),
+					Status:      entity.NewsStatusAdded,
+				}
+
+				repo.EXPECT().Get(gomock.Any(), specifications.NewNewsByID(uint64(222), "Publisher")).Return(news, nil)
+				repo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updateNews *entity.News) error {
+					assert.Equal(t, entity.NewsStatusSynced, updateNews.Status)
+					assert.Equal(t, "Empty News", updateNews.Title)
+					assert.Equal(t, "", updateNews.Author)
+					assert.Equal(t, "", updateNews.Thumbnail)
+					assert.NotNil(t, updateNews.PublishedAt)
+					assert.NotEmpty(t, updateNews.FilePath)
+					assert.GreaterOrEqual(t, updateNews.FileSize, int64(0))
+					return nil
+				})
+			},
+			setupEnv: func() {
+				os.Setenv("STORAGE_ROOT", tempDir)
+			},
+			expectNoError: true,
 		},
 	}
 
@@ -240,6 +345,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 				content,
 				tt.author,
 				tt.publishedDate,
+				tt.thumbnailURL,
 			)
 
 			if tt.expectNoError {

@@ -3,15 +3,14 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"net/url"
 
+	"github.com/dchest/validator"
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository"
 	"github.com/financial_advisor/app/errors"
 	appErrors "github.com/financial_advisor/app/errors"
 	"github.com/financial_advisor/app/external/db/gorm/specifications"
 	"github.com/financial_advisor/app/usecases/dto"
-	"golang.org/x/net/publicsuffix"
 )
 
 type PublisherCreateUsecase interface {
@@ -37,21 +36,14 @@ func (uc *publisherCreateUsecase) Execute(
 	ctx context.Context,
 	req dto.PublisherCreateRequest,
 ) (dto.Publisher, error) {
-	parsedURL, err := url.Parse(req.Domain)
-	if err != nil || parsedURL == nil {
+	if !validator.IsValidDomain(req.Domain) {
 		return dto.Publisher{}, appErrors.NewErrorBadRequest(
-			appErrors.ErrorCodeURLInvalid,
-			"invalid URL format",
+			appErrors.ErrorCodeBadRequest,
+			"invalid domain format",
 		)
 	}
 
-	domain, err := publicsuffix.EffectiveTLDPlusOne(parsedURL.Hostname())
-	if err != nil {
-		return dto.Publisher{}, appErrors.NewErrorBadRequest(
-			appErrors.ErrorCodeURLInvalid,
-			"invalid URL domain",
-		)
-	}
+	domain := validator.NormalizeDomain(req.Domain)
 
 	countPublisher, err := uc.publisherRepo.Count(
 		ctx,
@@ -62,8 +54,8 @@ func (uc *publisherCreateUsecase) Execute(
 	}
 
 	if countPublisher > 0 {
-		return dto.Publisher{}, errors.NewErrorForbidden(
-			errors.ErrorCodeForbidden,
+		return dto.Publisher{}, errors.NewErrorConflicted(
+			errors.ErrorCodeConflicted,
 			"publisher with the given domain already exists",
 		)
 	}

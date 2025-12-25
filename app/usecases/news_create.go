@@ -55,6 +55,13 @@ func (uc *newsCreateUsecase) Execute(
 		return dto.News{}, err
 	}
 
+	// create publisher if not exists
+	if publisher.ID == 0 {
+		if err = uc.publisherRepo.Create(ctx, &publisher); err != nil {
+			return dto.News{}, fmt.Errorf("create publisher: %w", err)
+		}
+	}
+
 	news := entity.News{
 		URL:         req.URL,
 		HashedURL:   hashedURL,
@@ -151,10 +158,10 @@ func (uc *newsCreateUsecase) validate(
 	)
 	if err != nil {
 		if errors.Is(err, appErrors.ErrNotFound) {
-			return entity.Publisher{}, nil, appErrors.NewErrorBadRequest(
-				appErrors.ErrorCodePublisherNotFound,
-				"publisher not found",
-			)
+			return entity.Publisher{
+				Name:   domain,
+				Domain: domain,
+			}, hashedURL, nil
 		}
 
 		return entity.Publisher{}, nil, fmt.Errorf("count publisher by id: %w", err)
