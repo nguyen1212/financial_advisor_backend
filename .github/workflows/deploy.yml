@@ -101,6 +101,8 @@ jobs:
               sudo newgrp docker
             fi
 
+            sudo chown -R 1000:1000 /mnt/data
+            
             # Stop and remove old container
             docker stop ${{ env.CONTAINER_NAME }} || true
             docker rm ${{ env.CONTAINER_NAME }} || true
@@ -112,7 +114,6 @@ jobs:
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             docker pull podron/financial-advisor:latest
 
-            sudo chown -R 1000:1000 /mnt/data
 
             # Run new container
             sudo docker run -d --name ${{ env.CONTAINER_NAME }} \
@@ -129,3 +130,4 @@ jobs:
               -e CORS_ALLOWED_HOSTS=${{ secrets.CORS_ALLOWED_HOSTS }} \
               --restart unless-stopped \
               podron/financial-advisor:latest
+            docker logout
