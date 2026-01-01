@@ -8,7 +8,7 @@ import (
 
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository/mock"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	goquSpec "github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/financial_advisor/app/usecases/dto"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -21,8 +21,16 @@ func Test_NewNewsFindUsecase(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	newsRepo := mock.NewMockNewsRepository(mockCtrl)
+	newsWithFullTextRepo := mock.NewMockNewsWithFullTextRepository(mockCtrl)
 
-	assert.Equal(t, &newsFindUsecase{newsRepo: newsRepo}, NewNewsFindUsecase(newsRepo))
+	assert.Equal(
+		t,
+		&newsFindUsecase{
+			newsRepo:             newsRepo,
+			newsWithFullTextRepo: newsWithFullTextRepo,
+		},
+		NewNewsFindUsecase(newsRepo, newsWithFullTextRepo),
+	)
 }
 
 func Test_NewsFindUsecase_Execute(t *testing.T) {
@@ -41,31 +49,60 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 				To:   time.Date(2024, 1, 31, 23, 59, 59, 0, time.UTC),
 			}
 
-			newsRepo = mock.NewMockNewsRepository(mockCtrl)
-			uc       = &newsFindUsecase{newsRepo: newsRepo}
+			newsRepo             = mock.NewMockNewsRepository(mockCtrl)
+			newsWithFullTextRepo = mock.NewMockNewsWithFullTextRepository(mockCtrl)
+			uc                   = &newsFindUsecase{
+				newsRepo:             newsRepo,
+				newsWithFullTextRepo: newsWithFullTextRepo,
+			}
 
 			newsEntities = []entity.News{
 				{
-					ID:       1,
-					Title:    "News 1",
-					Category: entity.NewsCategoryFinance,
-					Status:   entity.NewsStatusAdded,
+					ID:                 1,
+					Title:              "News 1",
+					Category:           entity.NewsCategoryFinance,
+					Status:             entity.NewsStatusAdded,
+					NewsWithFullTextID: 101,
 				},
 				{
-					ID:       2,
-					Title:    "News 2",
-					Category: entity.NewsCategoryMilitary,
-					Status:   entity.NewsStatusSynced,
+					ID:                 2,
+					Title:              "News 2",
+					Category:           entity.NewsCategoryMilitary,
+					Status:             entity.NewsStatusSynced,
+					NewsWithFullTextID: 102,
+				},
+			}
+
+			newsWithFullTextEntities = []entity.NewsWithFullText{
+				{
+					ID:      101,
+					Content: "Content 1",
+				},
+				{
+					ID:      102,
+					Content: "Content 2",
 				},
 			}
 		)
 
+		newsRepo.EXPECT().Count(
+			ctx,
+			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+		).Return(int64(2), nil)
+
 		newsRepo.EXPECT().Find(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To, nil),
+			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			goquSpec.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(newsEntities, nil)
 
-		result, err := uc.Execute(ctx, req)
+		newsWithFullTextRepo.EXPECT().Find(
+			ctx,
+			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileIDs([]uint64{101, 102}, 256))),
+			goquSpec.ToPaging(2, 1),
+		).Return(newsWithFullTextEntities, nil)
+
+		result, _, err := uc.Execute(ctx, req)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
@@ -88,16 +125,20 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 				To:   time.Date(2024, 1, 31, 23, 59, 59, 0, time.UTC),
 			}
 
-			newsRepo = mock.NewMockNewsRepository(mockCtrl)
-			uc       = &newsFindUsecase{newsRepo: newsRepo}
+			newsRepo             = mock.NewMockNewsRepository(mockCtrl)
+			newsWithFullTextRepo = mock.NewMockNewsWithFullTextRepository(mockCtrl)
+			uc                   = &newsFindUsecase{
+				newsRepo:             newsRepo,
+				newsWithFullTextRepo: newsWithFullTextRepo,
+			}
 		)
 
-		newsRepo.EXPECT().Find(
+		newsRepo.EXPECT().Count(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To, nil),
-		).Return([]entity.News{}, nil)
+			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+		).Return(int64(0), nil)
 
-		result, err := uc.Execute(ctx, req)
+		result, _, err := uc.Execute(ctx, req)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 0)
@@ -116,21 +157,25 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 				To:   time.Date(2024, 1, 31, 23, 59, 59, 0, time.UTC),
 			}
 
-			newsRepo = mock.NewMockNewsRepository(mockCtrl)
-			uc       = &newsFindUsecase{newsRepo: newsRepo}
+			newsRepo             = mock.NewMockNewsRepository(mockCtrl)
+			newsWithFullTextRepo = mock.NewMockNewsWithFullTextRepository(mockCtrl)
+			uc                   = &newsFindUsecase{
+				newsRepo:             newsRepo,
+				newsWithFullTextRepo: newsWithFullTextRepo,
+			}
 
 			repoErr = errors.New("database error")
 		)
 
-		newsRepo.EXPECT().Find(
+		newsRepo.EXPECT().Count(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To, nil),
-		).Return(nil, repoErr)
+			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+		).Return(int64(0), repoErr)
 
-		_, err := uc.Execute(ctx, req)
+		_, _, err := uc.Execute(ctx, req)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "find news by date range")
+		assert.Contains(t, err.Error(), "count news by date range")
 	})
 
 	t.Run("success with zero time values", func(t *testing.T) {
@@ -146,23 +191,47 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 				To:   time.Time{},
 			}
 
-			newsRepo = mock.NewMockNewsRepository(mockCtrl)
-			uc       = &newsFindUsecase{newsRepo: newsRepo}
+			newsRepo             = mock.NewMockNewsRepository(mockCtrl)
+			newsWithFullTextRepo = mock.NewMockNewsWithFullTextRepository(mockCtrl)
+			uc                   = &newsFindUsecase{
+				newsRepo:             newsRepo,
+				newsWithFullTextRepo: newsWithFullTextRepo,
+			}
 
 			newsEntities = []entity.News{
 				{
-					ID:    1,
-					Title: "All News",
+					ID:                 1,
+					Title:              "All News",
+					NewsWithFullTextID: 103,
+				},
+			}
+
+			newsWithFullTextEntities = []entity.NewsWithFullText{
+				{
+					ID:      103,
+					Content: "All content",
 				},
 			}
 		)
 
+		newsRepo.EXPECT().Count(
+			ctx,
+			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+		).Return(int64(1), nil)
+
 		newsRepo.EXPECT().Find(
 			ctx,
-			specifications.NewNewsByDate(req.From, req.To, nil),
+			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			goquSpec.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(newsEntities, nil)
 
-		result, err := uc.Execute(ctx, req)
+		newsWithFullTextRepo.EXPECT().Find(
+			ctx,
+			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileIDs([]uint64{103}, 256))),
+			goquSpec.ToPaging(1, 1),
+		).Return(newsWithFullTextEntities, nil)
+
+		result, _, err := uc.Execute(ctx, req)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)

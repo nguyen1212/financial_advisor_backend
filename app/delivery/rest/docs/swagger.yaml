@@ -60,12 +60,12 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: This is the project of stampless team
+  description: This is the project of financial advisor backend.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: stampless backend
+  title: financial_advisor backend
   version: "1.0"
 paths:
   /news:
@@ -129,6 +129,19 @@ paths:
       consumes:
       - application/json
       description: Delete news article by id
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: keywords
+        type: array
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
       produces:
       - application/json
       responses:
@@ -149,6 +162,56 @@ paths:
           schema:
             $ref: '#/definitions/presenter.New'
       summary: Get news by id
+      tags:
+      - news
+  /news/search:
+    get:
+      description: Return news search suggestions by keywords
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: keywords
+        type: array
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/presenter.New'
+            type: array
+      summary: Find news by keywords
+      tags:
+      - news
+  /news/search/suggestions:
+    get:
+      description: Return news search suggestions by keywords
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: keywords
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+      summary: Get search suggestions by keywords
       tags:
       - news
   /publishers:

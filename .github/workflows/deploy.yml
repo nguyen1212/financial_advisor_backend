@@ -7,7 +7,8 @@ on:
 
 env:
   DOCKER_IMAGE: podron/financial-advisor
-  CONTAINER_NAME: financial-advisor-server
+  SERVER_CONTAINER_NAME: financial-advisor-server
+  SEARCHENGINE_CONTAINER_NAME: financial-advisor-searchengine
 
 jobs:
   test:
@@ -171,14 +172,14 @@ jobs:
             docker pull podron/financial-advisor:latest
 
             # Stop and remove old container
-            docker stop ${{ env.CONTAINER_NAME }} || true
-            docker rm ${{ env.CONTAINER_NAME }} || true
+            docker stop ${{ env.SERVER_CONTAINER_NAME }} || true
+            docker rm ${{ env.SERVER_CONTAINER_NAME }} || true
 
             # Clean up old images
             docker image prune -f
 
             # Run new container
-            sudo docker run -d --name ${{ env.CONTAINER_NAME }} \
+            docker run -d --name ${{ env.SERVER_CONTAINER_NAME }} \
               --mount type=bind,src=/mnt/data,dst=/app/data \
               -p ${{ secrets.HTTP_PORT }}:${{ secrets.HTTP_PORT }} \
               -e ENV=${{ secrets.ENV }}\
@@ -192,4 +193,15 @@ jobs:
               -e CORS_ALLOWED_HOSTS=${{ secrets.CORS_ALLOWED_HOSTS }} \
               --restart unless-stopped \
               podron/financial-advisor:latest
+
+            # # grant permission for user in container
+            # sudo chown -R 999:999 /mnt/data/manticore
+            #
+            # docker run -d --name ${{ env.SEARCHENGINE_CONTAINER_NAME }} \
+            #   --mount type=bind,src=/mnt/data/manticore,dst=/var/lib/manticore \
+            #   --mount type=bind,src=/mnt/data/manticore/manticore.conf,dst=/etc/manticoresearch/manticore.conf \
+            #   --user manticore \
+            #   -p 9306:9306 \
+            #   manticoresearch/manticore
+
             docker logout

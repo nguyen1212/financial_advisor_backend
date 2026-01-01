@@ -53,3 +53,42 @@ func (r NewsCreateRequest) ToDTO() dto.NewsCreateRequest {
 		Category: entity.ToNewsCategory(r.Category),
 	}
 }
+
+type NewsSearchSuggestionRequest struct {
+	Keywords []string `form:"keywords"`
+}
+
+func (r NewsSearchSuggestionRequest) ToDTO() dto.NewsSearchSuggestionsRequest {
+	return dto.NewsSearchSuggestionsRequest{
+		Keywords: r.Keywords,
+	}
+}
+
+type NewsSearchRequest struct {
+	Keywords []string `form:"keywords"`
+	Paging
+}
+
+func (r NewsSearchRequest) ToDTO() dto.NewsSearchRequest {
+	return dto.NewsSearchRequest{
+		Keywords: r.Keywords,
+		Paging: dto.PagingRequest{
+			Page: r.Page,
+			Size: r.Size,
+		},
+	}
+}
+
+type NewsGetRequest struct {
+	HighlightKeywords []string `form:"highlight_keywords" validate:"dive,gt=0"`
+}
+
+func (r NewsGetRequest) Validate() error {
+	return validate(r)
+}
+
+func (r NewsGetRequest) ToDTO() dto.NewsGetRequest {
+	return dto.NewsGetRequest{
+		HighlightKeywords: r.HighlightKeywords,
+	}
+}

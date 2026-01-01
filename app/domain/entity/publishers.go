@@ -9,6 +9,6 @@ type Publisher struct {
 	Description string
 	Domain      string
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt time.Time `gorm:"->"`
+	UpdatedAt time.Time `gorm:"->"`
 }

@@ -4,11 +4,13 @@ package mysql
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository"
 	"github.com/financial_advisor/app/domain/repository/specifications"
 	appError "github.com/financial_advisor/app/errors"
+	gormAdapter "github.com/financial_advisor/app/external/db/gorm"
 	"gorm.io/gorm"
 )
 
@@ -16,8 +18,8 @@ type publisherRepository struct {
 	db *gorm.DB
 }
 
-func NewPublisherRepository(db *gorm.DB) repository.PublisherRepository {
-	return &publisherRepository{db: db}
+func NewPublisherRepository(db *gormAdapter.MySQL) repository.PublisherRepository {
+	return &publisherRepository{db: db.DB()}
 }
 
 func (r *publisherRepository) Count(
@@ -26,10 +28,15 @@ func (r *publisherRepository) Count(
 ) (int64, error) {
 	var (
 		count int64
-		tx    = spec.Query(r.db)
+		tx    = r.db.WithContext(ctx)
 	)
 
-	if err := tx.WithContext(ctx).Count(&count).Error; err != nil {
+	sql, err := spec.ToCount()
+	if err != nil {
+		return 0, fmt.Errorf("convert to raw count sql: %w", err)
+	}
+
+	if err := tx.Raw(sql).Count(&count).Error; err != nil {
 		return 0, err
 	}
 
@@ -43,12 +50,15 @@ func (r *publisherRepository) Find(
 ) ([]entity.Publisher, error) {
 	var (
 		publisherList []entity.Publisher
-		tx            = spec.Query(r.db).WithContext(ctx).
-				Limit(paging.Limit()).
-				Offset(paging.Offset())
+		tx            = r.db.WithContext(ctx)
 	)
 
-	if err := tx.Find(&publisherList).Error; err != nil {
+	sql, err := spec.ToFind(paging)
+	if err != nil {
+		return nil, fmt.Errorf("convert to raw find sql: %w", err)
+	}
+
+	if err := tx.Raw(sql).Find(&publisherList).Error; err != nil {
 		return nil, err
 	}
 
@@ -61,10 +71,15 @@ func (r *publisherRepository) Get(
 ) (entity.Publisher, error) {
 	var (
 		publisher entity.Publisher
-		tx        = spec.Query(r.db)
+		tx        = r.db.WithContext(ctx)
 	)
 
-	if err := tx.WithContext(ctx).Take(&publisher).Error; err != nil {
+	sql, err := spec.ToGet()
+	if err != nil {
+		return entity.Publisher{}, fmt.Errorf("convert to raw get sql: %w", err)
+	}
+
+	if err := tx.Raw(sql).Take(&publisher).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity.Publisher{}, appError.ErrNotFound
 		}

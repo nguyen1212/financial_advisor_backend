@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"regexp"
 	"strconv"
 
 	"github.com/financial_advisor/app/delivery/rest/payload"
@@ -45,12 +44,12 @@ func (hdl *NewsHandler) Find(
 		return nil, nil, err
 	}
 
-	news, err := uc.Execute(req.Context(), payl.ToDTO())
+	news, paging, err := uc.Execute(req.Context(), payl.ToDTO())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return presenter.FormNews(news), presenter.Paging{}, nil
+	return presenter.FormNews(news), presenter.Paging{Total: paging.Total}, nil
 }
 
 // Get function in handler to return news detail
@@ -61,9 +60,11 @@ func (hdl *NewsHandler) Find(
 // @Success 200 {object} presenter.New
 // @Router /news/{id} [get]
 func (hdl *NewsHandler) Get(req *http.Request) (any, error) {
-	uc := registry.InjectNewsGetUsecase()
-	regex, _ := regexp.Compile("/news/([0-9]+)$")
-	newsIDStr := regex.FindStringSubmatch(req.URL.Path)[1]
+	var (
+		uc        = registry.InjectNewsGetUsecase()
+		newsIDStr = req.Context().Value("id").(string)
+		query     payload.NewsGetRequest
+	)
 
 	newsID, err := strconv.Atoi(newsIDStr)
 	if err != nil {
@@ -73,7 +74,18 @@ func (hdl *NewsHandler) Get(req *http.Request) (any, error) {
 		)
 	}
 
-	news, err := uc.Execute(req.Context(), uint64(newsID))
+	if err = payload.ShouldBindWith(req, &query, binding.Query); err != nil {
+		return nil, errors.NewErrorBadRequest(
+			errors.ErrorCodeBadRequest,
+			"invalid query payload",
+		)
+	}
+
+	if err := query.Validate(); err != nil {
+		return nil, err
+	}
+
+	news, err := uc.Execute(req.Context(), uint64(newsID), query.ToDTO())
 	if err != nil {
 		return nil, err
 	}
@@ -121,13 +133,13 @@ func (hdl *NewsHandler) Create(req *http.Request) (any, error) {
 // @Tags news
 // @Accept json
 // @Produce json
+// @Param	queryBody	query	payload.NewsSearchRequest	false	"query params to provide keywords"
 // @Success 200 {object} any
 // @Router /news/{id} [delete]
 func (hdl *NewsHandler) Delete(req *http.Request) error {
 	var (
 		uc        = registry.InjectNewsDeleteUsecase()
-		regex, _  = regexp.Compile("/news/([0-9]+)$")
-		newsIDStr = regex.FindStringSubmatch(req.URL.Path)[1]
+		newsIDStr = req.Context().Value("id").(string)
 	)
 
 	newsID, err := strconv.Atoi(newsIDStr)
@@ -143,4 +155,62 @@ func (hdl *NewsHandler) Delete(req *http.Request) error {
 	}
 
 	return nil
+}
+
+// GetSearchSuggestions function in handler to return news search suggestions
+// @Summary Get search suggestions by keywords
+// @Description Return news search suggestions by keywords
+// @Tags news
+// @Produce json
+// @Param	queryBody	query	payload.NewsSearchSuggestionRequest	false	"query params to provide keywords"
+// @Success 200 {array} string
+// @Router /news/search/suggestions [get]
+func (hdl *NewsHandler) GetSearchSuggestions(req *http.Request) (any, error) {
+	var (
+		uc    = registry.InjectNewsSearchSuggestionGetUsecase()
+		query payload.NewsSearchSuggestionRequest
+	)
+
+	if err := payload.ShouldBindWith(req, &query, binding.Query); err != nil {
+		return nil, errors.NewErrorBadRequest(
+			errors.ErrorCodeBadRequest,
+			"invalid id param",
+		)
+	}
+
+	suggestions, err := uc.Execute(req.Context(), query.ToDTO())
+	if err != nil {
+		return nil, err
+	}
+
+	return suggestions, nil
+}
+
+// Search function in handler to return news by keywords
+// @Summary Find news by keywords
+// @Description Return news search suggestions by keywords
+// @Tags news
+// @Produce json
+// @Param	queryBody	query	payload.NewsSearchRequest	false	"query params to provide keywords"
+// @Success 200 {array} presenter.New
+// @Router /news/search [get]
+func (hdl *NewsHandler) Search(req *http.Request) (any, error) {
+	var (
+		uc    = registry.InjectNewsSearchUsecase()
+		query payload.NewsSearchRequest
+	)
+
+	if err := payload.ShouldBindWith(req, &query, binding.Query); err != nil {
+		return nil, errors.NewErrorBadRequest(
+			errors.ErrorCodeBadRequest,
+			"invalid id param",
+		)
+	}
+
+	news, err := uc.Execute(req.Context(), query.ToDTO())
+	if err != nil {
+		return nil, err
+	}
+
+	return presenter.FormNews(news), nil
 }

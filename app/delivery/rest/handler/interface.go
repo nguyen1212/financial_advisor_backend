@@ -22,3 +22,8 @@ type CreateHandler interface {
 type DeleteHandler interface {
 	Delete(*http.Request) error
 }
+
+type SearchHandler interface {
+	GetSearchSuggestions(*http.Request) (any, error)
+	Search(*http.Request) (any, error)
+}

@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/financial_advisor/app/domain/repository"
 	appErrors "github.com/financial_advisor/app/errors"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
 )
 
 type NewsDeleteUsecase interface {
@@ -19,14 +18,17 @@ type NewsDeleteUsecase interface {
 }
 
 type newsDeleteUsecase struct {
-	newsRepo repository.NewsRepository
+	newsRepo             repository.NewsRepository
+	newsWithFullTextRepo repository.NewsWithFullTextRepository
 }
 
 func NewNewsDeleteUsecase(
 	newsRepo repository.NewsRepository,
+	newsWithFullTextRepo repository.NewsWithFullTextRepository,
 ) NewsDeleteUsecase {
 	return &newsDeleteUsecase{
-		newsRepo: newsRepo,
+		newsRepo:             newsRepo,
+		newsWithFullTextRepo: newsWithFullTextRepo,
 	}
 }
 
@@ -46,8 +48,10 @@ func (uc *newsDeleteUsecase) Execute(
 		return fmt.Errorf("get news by id: %w", err)
 	}
 
-	if err := os.Remove(news.StoragePath()); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove news file: %w", err)
+	if news.NewsWithFullTextID != 0 {
+		if err := uc.newsWithFullTextRepo.Delete(ctx, news.NewsWithFullTextID); err != nil {
+			return fmt.Errorf("delete news full text: %w", err)
+		}
 	}
 
 	if err := uc.newsRepo.Delete(

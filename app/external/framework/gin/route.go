@@ -4,14 +4,17 @@ import (
 	"net/http"
 
 	"github.com/financial_advisor/app/config"
+	_ "github.com/financial_advisor/app/delivery/rest/docs"
 	"github.com/financial_advisor/app/delivery/rest/handler"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Handler define mapping routes
-// @title stampless backend
+// @title financial_advisor backend
 // @version 1.0
-// @description This is the project of stampless team
+// @description This is the project of financial advisor backend.
 // @termsOfService http://swagger.io/terms/
 // @contact.name API Support
 // @contact.url http://www.swagger.io/support
@@ -31,7 +34,12 @@ func Handler() *gin.Engine {
 		Secure(),
 		Headers,
 		CORS(config.Get().Cors),
+		gin.Logger(),
 	)
+
+	if config.Get().ENV == "development" {
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	router.GET("/", root)
 	router.GET("/api/healthz", healthz)
@@ -41,6 +49,8 @@ func Handler() *gin.Engine {
 	router.GET("/api/v1/news/:id", newsHandler.Get)
 	router.POST("/api/v1/news", newsHandler.Create)
 	router.DELETE("/api/v1/news/:id", newsHandler.Delete)
+	router.GET("/api/v1/news/search/suggestions", newsHandler.GetSearchSuggestions)
+	router.GET("/api/v1/news/search", newsHandler.Search)
 
 	// Publisher routes
 	router.GET("/api/v1/publishers", publisherHandler.Find)

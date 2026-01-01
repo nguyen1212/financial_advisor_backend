@@ -8,7 +8,7 @@ import (
 
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
 )
 
 type fallbackScrapperUsecase struct {

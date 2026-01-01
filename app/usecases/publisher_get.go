@@ -7,7 +7,7 @@ import (
 
 	"github.com/financial_advisor/app/domain/repository"
 	appErrors "github.com/financial_advisor/app/errors"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/financial_advisor/app/usecases/dto"
 )
 
@@ -42,7 +42,7 @@ func (uc *publisherGetUsecase) Execute(
 	)
 	if err != nil {
 		if errors.Is(err, appErrors.ErrNotFound) {
-			return dto.Publisher{}, appErrors.NewErrorBadRequest(
+			return dto.Publisher{}, appErrors.NewErrorNotFound(
 				appErrors.ErrorCodePublisherNotFound,
 				"publisher not found",
 			)

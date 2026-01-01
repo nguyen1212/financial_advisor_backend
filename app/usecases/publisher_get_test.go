@@ -8,7 +8,7 @@ import (
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository/mock"
 	appErrors "github.com/financial_advisor/app/errors"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -34,7 +34,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		var (
-			ctx              = context.Background()
+			ctx                = context.Background()
 			publisherID uint64 = 1
 
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
@@ -48,7 +48,10 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByID(publisherID)).Return(publisher, nil)
+		publisherRepo.EXPECT().Get(
+			ctx,
+			CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID))),
+		).Return(publisher, nil)
 
 		result, err := uc.Execute(ctx, publisherID)
 
@@ -66,19 +69,19 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		var (
-			ctx              = context.Background()
+			ctx                = context.Background()
 			publisherID uint64 = 1
 
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
 			uc            = &publisherGetUsecase{publisherRepo: publisherRepo}
 
-			wantErr = appErrors.NewErrorBadRequest(
+			wantErr = appErrors.NewErrorNotFound(
 				appErrors.ErrorCodePublisherNotFound,
 				"publisher not found",
 			)
 		)
 
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByID(publisherID)).Return(entity.Publisher{}, appErrors.ErrNotFound)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID)))).Return(entity.Publisher{}, appErrors.ErrNotFound)
 
 		_, err := uc.Execute(ctx, publisherID)
 
@@ -92,7 +95,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		var (
-			ctx              = context.Background()
+			ctx                = context.Background()
 			publisherID uint64 = 1
 
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
@@ -101,7 +104,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 			repoErr = errors.New("database error")
 		)
 
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByID(publisherID)).Return(entity.Publisher{}, repoErr)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID)))).Return(entity.Publisher{}, repoErr)
 
 		_, err := uc.Execute(ctx, publisherID)
 
@@ -116,7 +119,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		var (
-			ctx              = context.Background()
+			ctx                = context.Background()
 			publisherID uint64 = 2
 
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
@@ -130,7 +133,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByID(publisherID)).Return(publisher, nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID)))).Return(publisher, nil)
 
 		result, err := uc.Execute(ctx, publisherID)
 
