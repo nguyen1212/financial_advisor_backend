@@ -1,4 +1,4 @@
-name: CI/CD for Go Application
+name: Deployment flow
 
 on:
   push:
@@ -72,12 +72,15 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -f Dockerfile.server -t financial-advisor:latest --platform="linux/amd64" . 
-          docker tag financial-advisor:latest podron/financial-advisor:latest
+          docker tag financial-advisor:latest podron/financial-advisor:latest |
+          docker build -f Dockerfile.migration -t financial-advisor-migrate:latest --platform="linux/amd64" .
+          docker tag financial-advisor-migrate:latest podron/financial-advisor-migrate:latest
 
       - name: Push Docker Image to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           docker push podron/financial-advisor:latest
+          docker push podron/financial-advisor-migrate:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -101,19 +104,39 @@ jobs:
               sudo newgrp docker
             fi
 
+            # grant permission for user in container
             sudo chown -R 1000:1000 /mnt/data
             
+            # Login to dockerhub
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            docker pull podron/financial-advisor:latest
+
+            docker pull podron/financial-advisor-migrate:latest
+
+            # Run the container and store the output in a variable
+            container_output=$(
+              docker run --rm \
+                --name financial-advisor-migrate \
+                -e ENV=${{ secrets.ENV }} \
+                -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+                -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+                -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+                -e MYSQL_PORT=${{ secrets.MYSQL_PORT }} \
+                -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} podron/financial-advisor-migrate:latest
+            )
+
+            echo "$container_output"
+
+            if [[ ! "$container_output" == *"Applied"* ]]; then
+              exit 2
+            fi
+
             # Stop and remove old container
             docker stop ${{ env.CONTAINER_NAME }} || true
             docker rm ${{ env.CONTAINER_NAME }} || true
 
             # Clean up old images
             docker image prune -f
-            
-            # Login to dockerhub
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            docker pull podron/financial-advisor:latest
-
 
             # Run new container
             sudo docker run -d --name ${{ env.CONTAINER_NAME }} \

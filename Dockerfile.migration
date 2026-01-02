@@ -1,0 +1,42 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /build
+
+# Install sql-migrate
+ RUN set -ex && \
+   go install github.com/rubenv/sql-migrate/...@v1.7.0 && \
+   cp -rf /go/bin/sql-migrate /build/sql-migrate
+
+
+COPY Makefile .
+COPY migration/ ./migration
+
+# Build smaller image
+FROM alpine:3.14
+
+ENV ENV=$ENV \
+  MYSQL_USER=$MYSQL_USER \
+  MYSQL_PASSWORD=$MYSQL_PASSWORD \
+  MYSQL_HOST=$MYSQL_HOST \
+  MYSQL_PORT=$MYSQL_PORT \ 
+  MYSQL_DATABASE=$MYSQL_DATABASE
+
+WORKDIR /app
+
+RUN apk update && apk add make
+
+RUN addgroup -g 1000 appgroup
+
+RUN adduser -D -u 1000 appuser -G appgroup
+
+RUN chown -R appuser:appgroup /app
+
+COPY --from=builder /build/Makefile /app/
+COPY --from=builder /build/migration /app/
+COPY --from=builder /build/sql-migrate /app/
+
+USER appuser
+
+CMD ["sh", "-c", "./sql-migrate up -env=$ENV -config=dbconfig.yml"]
+
+
