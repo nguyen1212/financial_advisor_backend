@@ -82,9 +82,51 @@ jobs:
           docker push podron/financial-advisor:latest
           docker push podron/financial-advisor-migrate:latest
 
-  deploy:
+  migrate:
     runs-on: ubuntu-latest
     needs: build
+    steps:
+      - name: Migrate schema
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Install Docker if not exists
+            if ! command -v docker &> /dev/null; then
+              sudo dnf update -y
+              sudo dnf install -y docker
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ec2-user
+              sudo newgrp docker
+            fi
+
+            docker pull podron/financial-advisor-migrate:latest
+
+            # Migration
+            container_output=$(
+              docker run --rm \
+                -e ENV=${{ secrets.ENV }} \
+                -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+                -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+                -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+                -e MYSQL_PORT=${{ secrets.MYSQL_PORT }} \
+                -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} podron/financial-advisor-migrate:latest
+            )
+
+            echo "$container_output"
+
+            if [[ ! "$container_output" == *"Applied"* ]]; then
+              exit 2
+            fi
+
+            exit 0
+  deploy:
+    runs-on: ubuntu-latest
+    needs: migrate
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -110,26 +152,6 @@ jobs:
             # Login to dockerhub
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             docker pull podron/financial-advisor:latest
-
-            docker pull podron/financial-advisor-migrate:latest
-
-            # Run the container and store the output in a variable
-            container_output=$(
-              docker run --rm \
-                --name financial-advisor-migrate \
-                -e ENV=${{ secrets.ENV }} \
-                -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
-                -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-                -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
-                -e MYSQL_PORT=${{ secrets.MYSQL_PORT }} \
-                -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} podron/financial-advisor-migrate:latest
-            )
-
-            echo "$container_output"
-
-            if [[ ! "$container_output" == *"Applied"* ]]; then
-              exit 2
-            fi
 
             # Stop and remove old container
             docker stop ${{ env.CONTAINER_NAME }} || true
