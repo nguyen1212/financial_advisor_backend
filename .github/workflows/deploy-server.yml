@@ -168,6 +168,7 @@ jobs:
             # Run new container
             docker run -d --name ${{ env.SERVER_CONTAINER_NAME }} \
               --mount type=bind,src=/mnt/data,dst=/app/data \
+              --add-host host.docker.internal:host-gateway \
               -p ${{ secrets.HTTP_PORT }}:${{ secrets.HTTP_PORT }} \
               -e ENV=${{ secrets.ENV }}\
               -e HTTP_PORT=${{ secrets.HTTP_PORT }} \
