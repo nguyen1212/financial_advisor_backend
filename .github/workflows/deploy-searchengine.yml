@@ -25,6 +25,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: manticore/manticore.conf
           target: /mnt/data
+          overwrite: true
           
       - name: Reload search engine
         uses: appleboy/ssh-action@v1.0.3
@@ -49,6 +50,7 @@ jobs:
   
   deploy:
     runs-on: ubuntu-latest
+    needs: migrate
     environment:
       name: production
     steps:
@@ -81,5 +83,7 @@ jobs:
               --mount type=bind,src=/mnt/data/manticore,dst=/var/lib/manticore \
               --mount type=bind,src=/mnt/data/manticore/manticore.conf,dst=/etc/manticoresearch/manticore.conf \
               --user manticore \
+              --restart unless-stopped \
               -p 9306:9306 \
+              -p 9308:9308 \
               manticoresearch/manticore

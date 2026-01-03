@@ -2,11 +2,9 @@
 package gorm
 
 import (
-	"database/sql"
 	"fmt"
 	"sync"
 
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -23,32 +21,32 @@ func OpenManticoreConnection(conn string, config gorm.Config) error {
 	var err error
 
 	manticoreOnce.Do(func() {
-		sqlDB, innerErr := sql.Open("mysql", conn)
-		if innerErr != nil {
-			err = fmt.Errorf("sql open: %w", innerErr)
+		// sqlDB, innerErr := sql.Open("mysql", conn)
+		// if innerErr != nil {
+		// 	err = fmt.Errorf("sql open: %w", innerErr)
+		//
+		// 	return
+		// }
+		//
+		// db, innerErr := gorm.Open(
+		// 	mysql.New(mysql.Config{Conn: sqlDB}),
+		// 	&config,
+		// )
+		// if innerErr != nil {
+		// 	err = fmt.Errorf("gorm open: %w", innerErr)
+		//
+		// 	return
+		// }
+		//
+		// sqlDB, _ = db.DB()
+		//
+		// if err = sqlDB.Ping(); err != nil {
+		// 	err = fmt.Errorf("ping DB connection: %w", err)
+		//
+		// 	return
+		// }
 
-			return
-		}
-
-		db, innerErr := gorm.Open(
-			mysql.New(mysql.Config{Conn: sqlDB}),
-			&config,
-		)
-		if innerErr != nil {
-			err = fmt.Errorf("gorm open: %w", innerErr)
-
-			return
-		}
-
-		sqlDB, _ = db.DB()
-
-		if err = sqlDB.Ping(); err != nil {
-			err = fmt.Errorf("ping DB connection: %w", err)
-
-			return
-		}
-
-		manticoreInstance = &Manticore{db: db}
+		manticoreInstance = &Manticore{}
 	})
 
 	if err != nil {
