@@ -1,0 +1,48 @@
+name: Deploy Search Engine
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  CONTAINER_NAME: financial-advisor-searchengine
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: 
+      name: production # must follow rules set
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Copy config via SCP
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: manticore/manticore.conf
+          target: /mnt/data/manticore
+          
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Install Docker if not exists
+            if ! command -v docker &> /dev/null; then
+              sudo dnf update -y
+              sudo dnf install -y docker
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ec2-user
+              sudo newgrp docker
+            fi
+
+            # restart container to reflect new config
+            docker restart ${{ env.CONTAINER_NAME }} || true
