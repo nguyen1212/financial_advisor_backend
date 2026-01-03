@@ -2,10 +2,31 @@
 package framework
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/financial_advisor/app/delivery/rest/handler"
 	"github.com/financial_advisor/app/errors"
 	"github.com/gin-gonic/gin"
 )
+
+func reflectRequest(req *http.Request, ctx *gin.Context) *http.Request {
+	reqCtx := ctx.Request.Context()
+
+	// Add key/value pairs from Gin context to the request context
+	for key, value := range ctx.Keys {
+		reqCtx = context.WithValue(reqCtx, key, value)
+	}
+
+	for _, param := range ctx.Params {
+		reqCtx = context.WithValue(reqCtx, param.Key, param.Value)
+	}
+
+	// Create a new request with the updated context
+	newReq := ctx.Request.WithContext(reqCtx)
+
+	return newReq
+}
 
 type baseHandlerWrapper struct {
 	findHandler   handler.FindHandler
@@ -14,15 +35,68 @@ type baseHandlerWrapper struct {
 	deleteHandler handler.DeleteHandler
 }
 
+type newsHandlerWrapper struct {
+	baseHandlerWrapper
+	searchHandler handler.SearchHandler
+}
+
 func newNewsHandlerWrapper(
 	newsHandler *handler.NewsHandler,
-) *baseHandlerWrapper {
-	return &baseHandlerWrapper{
-		findHandler:   newsHandler,
-		createHandler: newsHandler,
-		getHandler:    newsHandler,
-		deleteHandler: newsHandler,
+) *newsHandlerWrapper {
+	h := newsHandlerWrapper{
+		searchHandler: newsHandler,
 	}
+
+	h.findHandler = newsHandler
+	h.getHandler = newsHandler
+	h.createHandler = newsHandler
+	h.deleteHandler = newsHandler
+
+	return &h
+}
+
+func (hdl *newsHandlerWrapper) GetSearchSuggestions(ctx *gin.Context) {
+	if hdl.searchHandler == nil {
+		RenderErrors(ctx, errors.NewErrorNotImplemented(
+			errors.ErrorCodeNotImplemented,
+			"method search is not implemented",
+		))
+
+		return
+	}
+
+	req := reflectRequest(ctx.Request, ctx)
+
+	data, err := hdl.searchHandler.GetSearchSuggestions(req)
+	if err != nil {
+		RenderErrors(ctx, err)
+
+		return
+	}
+
+	RenderData(ctx, data, nil)
+}
+
+func (hdl *newsHandlerWrapper) Search(ctx *gin.Context) {
+	if hdl.searchHandler == nil {
+		RenderErrors(ctx, errors.NewErrorNotImplemented(
+			errors.ErrorCodeNotImplemented,
+			"method search is not implemented",
+		))
+
+		return
+	}
+
+	req := reflectRequest(ctx.Request, ctx)
+
+	data, err := hdl.searchHandler.Search(req)
+	if err != nil {
+		RenderErrors(ctx, err)
+
+		return
+	}
+
+	RenderData(ctx, data, nil)
 }
 
 func newPublisherHandlerWrapper(
@@ -45,7 +119,9 @@ func (hdl *baseHandlerWrapper) Find(ctx *gin.Context) {
 		return
 	}
 
-	data, paging, err := hdl.findHandler.Find(ctx.Request)
+	req := reflectRequest(ctx.Request, ctx)
+
+	data, paging, err := hdl.findHandler.Find(req)
 	if err != nil {
 		RenderErrors(ctx, err)
 
@@ -65,7 +141,9 @@ func (hdl *baseHandlerWrapper) Get(ctx *gin.Context) {
 		return
 	}
 
-	data, err := hdl.getHandler.Get(ctx.Request)
+	req := reflectRequest(ctx.Request, ctx)
+
+	data, err := hdl.getHandler.Get(req)
 	if err != nil {
 		RenderErrors(ctx, err)
 
@@ -85,7 +163,9 @@ func (hdl *baseHandlerWrapper) Create(ctx *gin.Context) {
 		return
 	}
 
-	data, err := hdl.createHandler.Create(ctx.Request)
+	req := reflectRequest(ctx.Request, ctx)
+
+	data, err := hdl.createHandler.Create(req)
 	if err != nil {
 		RenderErrors(ctx, err)
 
@@ -104,7 +184,9 @@ func (hdl *baseHandlerWrapper) Delete(ctx *gin.Context) {
 		return
 	}
 
-	err := hdl.deleteHandler.Delete(ctx.Request)
+	req := reflectRequest(ctx.Request, ctx)
+
+	err := hdl.deleteHandler.Delete(req)
 	if err != nil {
 		RenderErrors(ctx, err)
 

@@ -86,18 +86,18 @@ func (mr *MockNewsRepositoryMockRecorder) Delete(ctx, newsID any) *gomock.Call {
 }
 
 // Find mocks base method.
-func (m *MockNewsRepository) Find(ctx context.Context, spec specifications.I) ([]entity.News, error) {
+func (m *MockNewsRepository) Find(ctx context.Context, spec specifications.I, paging specifications.PagingI) ([]entity.News, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Find", ctx, spec)
+	ret := m.ctrl.Call(m, "Find", ctx, spec, paging)
 	ret0, _ := ret[0].([]entity.News)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Find indicates an expected call of Find.
-func (mr *MockNewsRepositoryMockRecorder) Find(ctx, spec any) *gomock.Call {
+func (mr *MockNewsRepositoryMockRecorder) Find(ctx, spec, paging any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockNewsRepository)(nil).Find), ctx, spec)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockNewsRepository)(nil).Find), ctx, spec, paging)
 }
 
 // Get mocks base method.
@@ -127,4 +127,101 @@ func (m *MockNewsRepository) Update(ctx context.Context, news *entity.News) erro
 func (mr *MockNewsRepositoryMockRecorder) Update(ctx, news any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockNewsRepository)(nil).Update), ctx, news)
+}
+
+// MockNewsWithFullTextRepository is a mock of NewsWithFullTextRepository interface.
+type MockNewsWithFullTextRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockNewsWithFullTextRepositoryMockRecorder
+	isgomock struct{}
+}
+
+// MockNewsWithFullTextRepositoryMockRecorder is the mock recorder for MockNewsWithFullTextRepository.
+type MockNewsWithFullTextRepositoryMockRecorder struct {
+	mock *MockNewsWithFullTextRepository
+}
+
+// NewMockNewsWithFullTextRepository creates a new mock instance.
+func NewMockNewsWithFullTextRepository(ctrl *gomock.Controller) *MockNewsWithFullTextRepository {
+	mock := &MockNewsWithFullTextRepository{ctrl: ctrl}
+	mock.recorder = &MockNewsWithFullTextRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockNewsWithFullTextRepository) EXPECT() *MockNewsWithFullTextRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockNewsWithFullTextRepository) Create(ctx context.Context, news *entity.NewsWithFullText) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, news)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockNewsWithFullTextRepositoryMockRecorder) Create(ctx, news any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNewsWithFullTextRepository)(nil).Create), ctx, news)
+}
+
+// Delete mocks base method.
+func (m *MockNewsWithFullTextRepository) Delete(ctx context.Context, id uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockNewsWithFullTextRepositoryMockRecorder) Delete(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockNewsWithFullTextRepository)(nil).Delete), ctx, id)
+}
+
+// Find mocks base method.
+func (m *MockNewsWithFullTextRepository) Find(ctx context.Context, spec specifications.I, paging specifications.PagingI) ([]entity.NewsWithFullText, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", ctx, spec, paging)
+	ret0, _ := ret[0].([]entity.NewsWithFullText)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Find indicates an expected call of Find.
+func (mr *MockNewsWithFullTextRepositoryMockRecorder) Find(ctx, spec, paging any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockNewsWithFullTextRepository)(nil).Find), ctx, spec, paging)
+}
+
+// FindSearchSuggestions mocks base method.
+func (m *MockNewsWithFullTextRepository) FindSearchSuggestions(ctx context.Context, specs specifications.I, paging specifications.PagingI) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindSearchSuggestions", ctx, specs, paging)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindSearchSuggestions indicates an expected call of FindSearchSuggestions.
+func (mr *MockNewsWithFullTextRepositoryMockRecorder) FindSearchSuggestions(ctx, specs, paging any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindSearchSuggestions", reflect.TypeOf((*MockNewsWithFullTextRepository)(nil).FindSearchSuggestions), ctx, specs, paging)
+}
+
+// Get mocks base method.
+func (m *MockNewsWithFullTextRepository) Get(ctx context.Context, spec specifications.I) (entity.NewsWithFullText, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, spec)
+	ret0, _ := ret[0].(entity.NewsWithFullText)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockNewsWithFullTextRepositoryMockRecorder) Get(ctx, spec any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockNewsWithFullTextRepository)(nil).Get), ctx, spec)
 }

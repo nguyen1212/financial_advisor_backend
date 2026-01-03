@@ -9,7 +9,8 @@ import (
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository/mock"
 	appErrors "github.com/financial_advisor/app/errors"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
+	goquSpec "github.com/financial_advisor/app/external/db/goqu/specifications"
 	hasherMock "github.com/financial_advisor/app/services/hasher/mock"
 	"github.com/financial_advisor/app/services/queue"
 	queueMock "github.com/financial_advisor/app/services/queue/mock"
@@ -76,8 +77,8 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 		// Mock validation steps
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(publisher, nil)
 
 		// Mock successful create
 		newsRepo.EXPECT().Create(ctx, &entity.News{
@@ -172,7 +173,7 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		)
 
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(1), nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(1), nil)
 
 		_, err := uc.Execute(ctx, req)
 
@@ -211,7 +212,7 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		)
 
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), countErr)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), countErr)
 
 		_, err := uc.Execute(ctx, req)
 
@@ -247,7 +248,7 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		)
 
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
 
 		_, err := uc.Execute(ctx, req)
 
@@ -286,8 +287,14 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 		// Mock validation steps
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("unknown.com")).Return(entity.Publisher{}, appErrors.ErrNotFound)
+		newsRepo.EXPECT().Count(
+			ctx,
+			CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL))),
+		).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(
+			ctx,
+			CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("unknown.com"))),
+		).Return(entity.Publisher{}, appErrors.ErrNotFound)
 
 		// Mock publisher creation
 		publisherRepo.EXPECT().Create(ctx, &entity.Publisher{
@@ -354,14 +361,21 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 				hasher:        hasher,
 			}
 
-			hashedURL   = []byte("hashed-url")
+			hashedURL    = []byte("hashed-url")
 			publisherErr = errors.New("database error")
 		)
 
 		// Mock validation steps
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("newpublisher.com")).Return(entity.Publisher{}, appErrors.ErrNotFound)
+		newsRepo.EXPECT().Count(
+			gomock.Any(),
+			CustomMatcher(specMatcher(specifications.NewNewsByHashedURL(hashedURL))),
+		).Return(int64(0), nil)
+
+		publisherRepo.EXPECT().Get(
+			ctx,
+			CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("newpublisher.com"))),
+		).Return(entity.Publisher{}, appErrors.ErrNotFound)
 
 		// Mock publisher creation failure
 		publisherRepo.EXPECT().Create(ctx, &entity.Publisher{
@@ -404,13 +418,13 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		)
 
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(entity.Publisher{}, publisherErr)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(entity.Publisher{}, publisherErr)
 
 		_, err := uc.Execute(ctx, req)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "count publisher by id")
+		assert.Contains(t, err.Error(), "get publisher by id")
 	})
 
 	t.Run("create news error - conflicted", func(t *testing.T) {
@@ -446,8 +460,8 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		)
 
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(publisher, nil)
 		newsRepo.EXPECT().Create(ctx, &entity.News{
 			URL:         req.URL,
 			HashedURL:   hashedURL,
@@ -498,8 +512,8 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		)
 
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(publisher, nil)
 		newsRepo.EXPECT().Create(ctx, &entity.News{
 			URL:         req.URL,
 			HashedURL:   hashedURL,
@@ -548,8 +562,8 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		)
 
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(publisher, nil)
 		newsRepo.EXPECT().Create(ctx, &entity.News{
 			URL:         req.URL,
 			HashedURL:   hashedURL,
@@ -611,8 +625,8 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 		// Mock validation steps
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(publisher, nil)
 
 		// Mock successful create
 		newsRepo.EXPECT().Create(ctx, &entity.News{
@@ -681,8 +695,8 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 		// Mock validation steps
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(publisher, nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(publisher, nil)
 
 		// Mock successful create
 		newsRepo.EXPECT().Create(ctx, &entity.News{
@@ -744,9 +758,9 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 		// Mock validation steps
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
-		newsRepo.EXPECT().Count(ctx, specifications.NewNewsByHashedURL(hashedURL)).Return(int64(0), nil)
+		newsRepo.EXPECT().Count(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL)))).Return(int64(0), nil)
 		// subdomain.example.com should resolve to example.com as the effective TLD+1
-		publisherRepo.EXPECT().Get(ctx, specifications.NewPublisherByDomain("example.com")).Return(entity.Publisher{}, appErrors.ErrNotFound)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewPublisherByDomain("example.com")))).Return(entity.Publisher{}, appErrors.ErrNotFound)
 
 		// Mock publisher creation for the main domain
 		publisherRepo.EXPECT().Create(ctx, &entity.Publisher{
@@ -788,4 +802,3 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		assert.Equal(t, entity.NewsStatusAdded.String(), result.Status)
 	})
 }
-

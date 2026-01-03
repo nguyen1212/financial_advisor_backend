@@ -9,7 +9,7 @@ import (
 	"github.com/financial_advisor/app/domain/repository"
 	"github.com/financial_advisor/app/errors"
 	appErrors "github.com/financial_advisor/app/errors"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/financial_advisor/app/usecases/dto"
 )
 

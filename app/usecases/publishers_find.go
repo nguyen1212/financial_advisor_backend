@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/financial_advisor/app/usecases/dto"
 	"github.com/financial_advisor/app/domain/repository"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
+	"github.com/financial_advisor/app/usecases/dto"
 )
 
 type PublishersFindUsecase interface {

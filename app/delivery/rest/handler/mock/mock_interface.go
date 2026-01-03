@@ -171,3 +171,57 @@ func (mr *MockDeleteHandlerMockRecorder) Delete(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDeleteHandler)(nil).Delete), arg0)
 }
+
+// MockSearchHandler is a mock of SearchHandler interface.
+type MockSearchHandler struct {
+	ctrl     *gomock.Controller
+	recorder *MockSearchHandlerMockRecorder
+	isgomock struct{}
+}
+
+// MockSearchHandlerMockRecorder is the mock recorder for MockSearchHandler.
+type MockSearchHandlerMockRecorder struct {
+	mock *MockSearchHandler
+}
+
+// NewMockSearchHandler creates a new mock instance.
+func NewMockSearchHandler(ctrl *gomock.Controller) *MockSearchHandler {
+	mock := &MockSearchHandler{ctrl: ctrl}
+	mock.recorder = &MockSearchHandlerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSearchHandler) EXPECT() *MockSearchHandlerMockRecorder {
+	return m.recorder
+}
+
+// GetSearchSuggestions mocks base method.
+func (m *MockSearchHandler) GetSearchSuggestions(arg0 *http.Request) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSearchSuggestions", arg0)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSearchSuggestions indicates an expected call of GetSearchSuggestions.
+func (mr *MockSearchHandlerMockRecorder) GetSearchSuggestions(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSearchSuggestions", reflect.TypeOf((*MockSearchHandler)(nil).GetSearchSuggestions), arg0)
+}
+
+// Search mocks base method.
+func (m *MockSearchHandler) Search(arg0 *http.Request) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", arg0)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search.
+func (mr *MockSearchHandlerMockRecorder) Search(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockSearchHandler)(nil).Search), arg0)
+}

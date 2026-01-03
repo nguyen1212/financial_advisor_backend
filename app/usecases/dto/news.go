@@ -46,3 +46,16 @@ type NewsCreateRequest struct {
 	URL      string
 	Category entity.NewsCategory
 }
+
+type NewsSearchSuggestionsRequest struct {
+	Keywords []string
+}
+
+type NewsSearchRequest struct {
+	Keywords []string
+	Paging   PagingRequest
+}
+
+type NewsGetRequest struct {
+	HighlightKeywords []string
+}

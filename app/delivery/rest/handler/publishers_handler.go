@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"regexp"
 	"strconv"
 
 	"github.com/financial_advisor/app/delivery/rest/payload"
@@ -57,9 +56,10 @@ func (hdl *PublisherHandler) Find(
 // @Success 200 {object} presenter.Publisher
 // @Router /publishers/{id} [get]
 func (hdl *PublisherHandler) Get(req *http.Request) (any, error) {
-	uc := registry.InjectPublisherGetUsecase()
-	regex, _ := regexp.Compile("/publishers/([0-9]+)$")
-	publisherIDStr := regex.FindStringSubmatch(req.URL.Path)[1]
+	var (
+		uc             = registry.InjectPublisherGetUsecase()
+		publisherIDStr = req.Context().Value("id").(string)
+	)
 
 	publisherID, err := strconv.Atoi(publisherIDStr)
 	if err != nil {

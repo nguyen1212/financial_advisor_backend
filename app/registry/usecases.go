@@ -2,84 +2,65 @@
 package registry
 
 import (
-	"github.com/financial_advisor/app/external/db/gorm"
-	"github.com/financial_advisor/app/external/db/gorm/mysql"
-	"github.com/financial_advisor/app/external/hasher"
-	memoryqueue "github.com/financial_advisor/app/external/queue/memory-queue"
 	"github.com/financial_advisor/app/usecases"
+	"github.com/google/wire"
 )
 
-func InjectNewsFindUsecase() usecases.NewsFindUsecase {
-	db := gorm.Get()
-
-	return usecases.NewNewsFindUsecase(
-		mysql.NewNewsRepository(db),
+var (
+	NewsFindUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewNewsFindUsecase,
 	)
-}
-
-func InjectPublishersFindUsecase() usecases.PublishersFindUsecase {
-	db := gorm.Get()
-
-	return usecases.NewPublishersFindUsecase(
-		mysql.NewPublisherRepository(db),
+	PublishersFindUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewPublishersFindUsecase,
 	)
-}
-
-func InjectPublisherCreateUsecase() usecases.PublisherCreateUsecase {
-	db := gorm.Get()
-
-	return usecases.NewPublisherCreateUsecase(
-		mysql.NewPublisherRepository(db),
+	PublisherCreateUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewPublisherCreateUsecase,
 	)
-}
-
-func InjectVnExpressScrapperUsecase() usecases.WebScrapperUsecase {
-	db := gorm.Get()
-
-	return usecases.NewVnExpressScrapperUsecase(mysql.NewNewsRepository(db))
-}
-
-func InjectNewsCreateUsecase() usecases.NewsCreateUsecase {
-	db := gorm.Get()
-	memqueue := memoryqueue.Get()
-	hasher := hasher.NewMD5()
-
-	return usecases.NewNewsCreateUsecase(
-		mysql.NewNewsRepository(db),
-		mysql.NewPublisherRepository(db),
-		memqueue,
-		hasher,
+	VnExpressScrapperUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewVnExpressScrapperUsecase,
 	)
-}
-
-func InjectNewsGetUsecase() usecases.NewsGetUsecase {
-	db := gorm.Get()
-
-	return usecases.NewNewsGetUsecase(
-		mysql.NewNewsRepository(db),
+	NewsCreateUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		serviceSet,
+		usecases.NewNewsCreateUsecase,
 	)
-}
-
-func InjectNewsDeleteUsecase() usecases.NewsDeleteUsecase {
-	db := gorm.Get()
-
-	return usecases.NewNewsDeleteUsecase(
-		mysql.NewNewsRepository(db),
+	NewsGetUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewNewsGetUsecase,
 	)
-}
-
-func InjectPublisherGetUsecase() usecases.PublisherGetUsecase {
-	db := gorm.Get()
-
-	return usecases.NewPublisherGetUsecase(
-		mysql.NewPublisherRepository(db),
+	NewsDeleteUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewNewsDeleteUsecase,
 	)
-}
-
-func InjectFallbackScrapperUsecase() usecases.FallbackScrapperUsecase {
-	db := gorm.Get()
-
-	return usecases.NewFallbackScrapperUsecase(
-		mysql.NewNewsRepository(db),
+	PublisherGetUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewPublisherGetUsecase,
 	)
-}
+	FallbackScrapperUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewFallbackScrapperUsecase,
+	)
+	NewsSearchSuggestionsGetUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewNewsSearchSuggestionsGetUsecase,
+	)
+	NewsSearchUsecaseSet = wire.NewSet(
+		singletonSet,
+		repositorySet,
+		usecases.NewNewsSearchUsecase,
+	)
+)

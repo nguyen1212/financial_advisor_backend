@@ -40,8 +40,15 @@ func main() {
 	}
 
 	// Initialize database connections
-	if err := db.Init(rootCtx); err != nil {
+	if err := db.InitMySQL(rootCtx); err != nil {
 		logrus.WithError(err).Errorln("initialize database connections")
+
+		return
+	}
+
+	// Initialize Manticore connection
+	if err := db.InitManticore(rootCtx); err != nil {
+		logrus.WithError(err).Errorln("initialize manticore connection")
 
 		return
 	}

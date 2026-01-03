@@ -10,7 +10,7 @@ import (
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository"
 	appErrors "github.com/financial_advisor/app/errors"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	goquSpec "github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/financial_advisor/app/services/hasher"
 	"github.com/financial_advisor/app/services/queue"
 	"github.com/financial_advisor/app/usecases/dto"
@@ -121,7 +121,7 @@ func (uc *newsCreateUsecase) validate(
 
 	countURL, err := uc.newsRepo.Count(
 		ctx,
-		specifications.NewNewsByHashedURL(hashedURL),
+		goquSpec.NewNewsByHashedURL(hashedURL),
 	)
 	if err != nil {
 		return entity.Publisher{}, nil, fmt.Errorf("count url by hashed value: %w", err)
@@ -154,7 +154,7 @@ func (uc *newsCreateUsecase) validate(
 
 	publisher, err := uc.publisherRepo.Get(
 		ctx,
-		specifications.NewPublisherByDomain(domain),
+		goquSpec.NewPublisherByDomain(domain),
 	)
 	if err != nil {
 		if errors.Is(err, appErrors.ErrNotFound) {
@@ -164,7 +164,7 @@ func (uc *newsCreateUsecase) validate(
 			}, hashedURL, nil
 		}
 
-		return entity.Publisher{}, nil, fmt.Errorf("count publisher by id: %w", err)
+		return entity.Publisher{}, nil, fmt.Errorf("get publisher by id: %w", err)
 
 	}
 

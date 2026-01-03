@@ -7,7 +7,7 @@ import (
 
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository/mock"
-	"github.com/financial_advisor/app/external/db/gorm/specifications"
+	"github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/financial_advisor/app/usecases/dto"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -63,7 +63,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			specifications.NewPublishersByNone(),
+			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(publisherEntities, nil)
 
@@ -100,7 +100,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			specifications.NewPublishersByNone(),
+			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return([]entity.Publisher{}, nil)
 
@@ -133,7 +133,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			specifications.NewPublishersByNone(),
+			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(nil, repoErr)
 
@@ -172,7 +172,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			specifications.NewPublishersByNone(),
+			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(publisherEntities, nil)
 

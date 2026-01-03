@@ -20,6 +20,7 @@ const (
 	ErrorTypeForbidden      ErrorType = "TYPE_FORBIDDEN"
 	ErrorTypeNotImplemented ErrorType = "TYPE_NOT_IMPLEMENTED"
 	ErrorTypeConflicted     ErrorType = "TYPE_CONFLICTED"
+	ErrorTypeNotFound       ErrorType = "TYPE_NOT_FOUND"
 )
 
 type ErrorCode string

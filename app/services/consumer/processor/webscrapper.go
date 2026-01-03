@@ -27,7 +27,8 @@ func NewWebScrapperProcessor(
 func (p WebScrapperProcessor) Execute(msg []byte) error {
 	var job entity.WebScrapperJob
 
-	if err := json.Unmarshal(msg, &job); err != nil {
+	err := json.Unmarshal(msg, &job)
+	if err != nil {
 		return err
 	}
 
@@ -36,8 +37,10 @@ func (p WebScrapperProcessor) Execute(msg []byte) error {
 		return p.fallback.Execute(config.Get().GlobalCtx(), job)
 	}
 
-	return uc.Execute(
+	err = uc.Execute(
 		config.Get().GlobalCtx(),
 		job,
 	)
+
+	return err
 }

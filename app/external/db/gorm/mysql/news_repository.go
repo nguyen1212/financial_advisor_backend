@@ -4,11 +4,13 @@ package mysql
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository"
 	"github.com/financial_advisor/app/domain/repository/specifications"
 	appErrors "github.com/financial_advisor/app/errors"
+	gormAdapter "github.com/financial_advisor/app/external/db/gorm"
 	"gorm.io/gorm"
 )
 
@@ -16,8 +18,8 @@ type newsRepository struct {
 	db *gorm.DB
 }
 
-func NewNewsRepository(db *gorm.DB) repository.NewsRepository {
-	return &newsRepository{db: db}
+func NewNewsRepository(db *gormAdapter.MySQL) repository.NewsRepository {
+	return &newsRepository{db: db.DB()}
 }
 
 func (r *newsRepository) Count(
@@ -26,10 +28,15 @@ func (r *newsRepository) Count(
 ) (int64, error) {
 	var (
 		count int64
-		tx    = spec.Query(r.db)
+		tx    = r.db.WithContext(ctx)
 	)
 
-	if err := tx.WithContext(ctx).Count(&count).Error; err != nil {
+	sql, err := spec.ToCount()
+	if err != nil {
+		return 0, fmt.Errorf("convert to raw count sql: %w", err)
+	}
+
+	if err := tx.WithContext(ctx).Raw(sql).Count(&count).Error; err != nil {
 		return 0, err
 	}
 
@@ -39,13 +46,19 @@ func (r *newsRepository) Count(
 func (r *newsRepository) Find(
 	ctx context.Context,
 	spec specifications.I,
+	paging specifications.PagingI,
 ) ([]entity.News, error) {
 	var (
 		newsList []entity.News
-		tx       = spec.Query(r.db)
+		tx       = r.db.WithContext(ctx)
 	)
 
-	if err := tx.WithContext(ctx).Find(&newsList).Error; err != nil {
+	sql, err := spec.ToFind(paging)
+	if err != nil {
+		return nil, fmt.Errorf("convert to raw find sql: %w", err)
+	}
+
+	if err := tx.WithContext(ctx).Raw(sql).Find(&newsList).Error; err != nil {
 		return nil, err
 	}
 
@@ -58,10 +71,15 @@ func (r *newsRepository) Get(
 ) (entity.News, error) {
 	var (
 		news entity.News
-		tx   = spec.Query(r.db)
+		tx   = r.db.WithContext(ctx)
 	)
 
-	if err := tx.WithContext(ctx).Take(&news).Error; err != nil {
+	sql, err := spec.ToGet()
+	if err != nil {
+		return entity.News{}, fmt.Errorf("convert to raw get sql: %w", err)
+	}
+
+	if err := tx.WithContext(ctx).Raw(sql).Take(&news).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity.News{}, appErrors.ErrNotFound
 		}
@@ -90,7 +108,10 @@ func (r *newsRepository) Update(
 	ctx context.Context,
 	news *entity.News,
 ) error {
-	if err := r.db.WithContext(ctx).Model(news).Updates(news.ToMap()).Error; err != nil {
+	if err := r.db.
+		WithContext(ctx).
+		Model(news).
+		Updates(news.ToMap()).Error; err != nil {
 		return err
 	}
 
@@ -101,7 +122,9 @@ func (r *newsRepository) Delete(
 	ctx context.Context,
 	newsID uint64,
 ) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.News{ID: newsID}).Error; err != nil {
+	if err := r.db.
+		WithContext(ctx).
+		Delete(&entity.News{ID: newsID}).Error; err != nil {
 		return err
 	}
 

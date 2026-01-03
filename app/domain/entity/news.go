@@ -83,16 +83,17 @@ type News struct {
 	Status    NewsStatus
 	Category  NewsCategory
 
-	FilePath string
-	FileSize int64
-	Content  string `gorm:"-"`
+	FilePath           string // deprecated
+	FileSize           int64
+	NewsWithFullTextID uint64 `gorm:"column:news_with_fulltext_id"`
+	Content            string `gorm:"-"`
 
 	Publisher   Publisher `gorm:"foreignKey:PublisherID;->"`
 	PublisherID uint64
 
 	PublishedAt *time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	CreatedAt   time.Time `gorm:"->"`
+	UpdatedAt   time.Time `gorm:"->"`
 }
 
 func (news *News) StoragePath() string {
@@ -112,12 +113,12 @@ func (news *News) StorageDir() string {
 
 func (news *News) ToMap() map[string]any {
 	return map[string]any{
-		"author":       news.Author,
-		"file_path":    news.FilePath,
-		"file_size":    news.FileSize,
-		"published_at": news.PublishedAt,
-		"status":       news.Status,
-		"title":        news.Title,
-		"thumbnail":    news.Thumbnail,
+		"author":                news.Author,
+		"news_with_fulltext_id": news.NewsWithFullTextID,
+		"file_size":             news.FileSize,
+		"published_at":          news.PublishedAt,
+		"status":                news.Status,
+		"title":                 news.Title,
+		"thumbnail":             news.Thumbnail,
 	}
 }

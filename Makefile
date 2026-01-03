@@ -5,6 +5,7 @@ SRC_PATH:= ${PWD}
 prepare:
 	@go install github.com/rubenv/sql-migrate/...@latest
 	@go install github.com/swaggo/swag/cmd/swag@latest
+	@go install github.com/google/wire/cmd/wire@latest
 
 mod:
 	@go mod tidy

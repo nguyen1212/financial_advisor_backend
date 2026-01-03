@@ -1,11 +1,6 @@
-version: "3.8"
-
 networks:
   financial_advisor_default:
     external: false
-
-volumes:
-  mysqlfinancialadvisor:
 
 services:
   mysql:
@@ -13,7 +8,7 @@ services:
     restart: always
     user: mysql
     volumes:
-      - ~./docker/data/mysqlfinancialadvisor:/var/lib/mysql:rw
+      - ~/.docker/data/financial_advisor/mysql:/var/lib/mysql:rw
     ports:
       - "40001:3306"
     environment:
@@ -46,3 +41,17 @@ services:
     volumes:
       - ~/.docker/data/localstack:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
+
+  searchengine:
+    image: manticoresearch/manticore
+    restart: always
+    ports:
+      - "9306:9306" # for mysql
+      - "9308:9308" # for http (tcp)
+    volumes:
+      - ~/.docker/data/financial_advisor/manticore:/var/lib/manticore
+      - ${PWD}/manticore/manticore.conf:/etc/manticoresearch/manticore.conf:r
+
+volumes:
+  mysql:
+  manticore:
