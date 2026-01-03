@@ -181,14 +181,4 @@ jobs:
               --restart unless-stopped \
               podron/financial-advisor:latest
 
-            # # grant permission for user in container
-            # sudo chown -R 999:999 /mnt/data/manticore
-            #
-            # docker run -d --name ${{ env.SEARCHENGINE_CONTAINER_NAME }} \
-            #   --mount type=bind,src=/mnt/data/manticore,dst=/var/lib/manticore \
-            #   --mount type=bind,src=/mnt/data/manticore/manticore.conf,dst=/etc/manticoresearch/manticore.conf \
-            #   --user manticore \
-            #   -p 9306:9306 \
-            #   manticoresearch/manticore
-
             docker logout

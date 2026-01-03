@@ -26,7 +26,7 @@ jobs:
           source: manticore/manticore.conf
           target: /mnt/data
           
-      - name: Deploy to EC2
+      - name: Reload search engine
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -46,3 +46,40 @@ jobs:
 
             # restart container to reflect new config
             docker restart ${{ env.CONTAINER_NAME }} || true
+  
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Deploy search engine
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Install Docker if not exists
+            if ! command -v docker &> /dev/null; then
+              sudo dnf update -y
+              sudo dnf install -y docker
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ec2-user
+              sudo newgrp docker
+            fi
+
+            sudo chown -R 999:999 /mnt/data/manticore
+
+            # Stop and remove old container
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
+            
+            # restart container to reflect new config
+            docker run -d --name ${{ env.CONTAINER_NAME }} \
+              --mount type=bind,src=/mnt/data/manticore,dst=/var/lib/manticore \
+              --mount type=bind,src=/mnt/data/manticore/manticore.conf,dst=/etc/manticoresearch/manticore.conf \
+              --user manticore \
+              -p 9306:9306 \
+              manticoresearch/manticore
