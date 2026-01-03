@@ -44,7 +44,7 @@ type Config struct {
 	MySQLPort     string `envconfig:"MYSQL_PORT" default:"40001"`
 	MySQLDatabase string `envconfig:"MYSQL_DATABASE" default:"financial_advisor"`
 
-	ManticoreHost     string `envconfig:"MANTICORE_HOST" default:"0.0.0.0"`
+	ManticoreHost     string `envconfig:"MANTICORE_HOST" default:"host.docker.internal"`
 	ManticorePort     string `envconfig:"MANTICORE_PORT" default:"9306"`
 	ManticoreDatabase string `envconfig:"MANTICORE_DATABASE" default:"Manticore"`
 
