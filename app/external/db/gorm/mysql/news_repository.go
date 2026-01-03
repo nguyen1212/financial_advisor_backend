@@ -11,8 +11,11 @@ import (
 	"github.com/financial_advisor/app/domain/repository/specifications"
 	appErrors "github.com/financial_advisor/app/errors"
 	gormAdapter "github.com/financial_advisor/app/external/db/gorm"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
+
+const duplicateEntryMysqlCode uint16 = 1062
 
 type newsRepository struct {
 	db *gorm.DB
@@ -94,7 +97,9 @@ func (r *newsRepository) Create(
 	news *entity.News,
 ) error {
 	if err := r.db.WithContext(ctx).Create(news).Error; err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+		var mySQLErr *mysql.MySQLError
+
+		if errors.As(err, &mySQLErr) && mySQLErr.Number == duplicateEntryMysqlCode {
 			return appErrors.ErrConflicted
 		}
 

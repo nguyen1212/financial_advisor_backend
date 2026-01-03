@@ -26,10 +26,17 @@ const (
 	LogLevelInfo  LogLevel = "info"
 )
 
+type ENV string
+
+const (
+	ENVDevelopment ENV = "development"
+	ENVProduction  ENV = "prod"
+)
+
 type Config struct {
 	globalCtx context.Context
 
-	ENV        string `envconfig:"ENV" default:"development"`
+	ENV        ENV    `envconfig:"ENV" default:"development"`
 	AppName    string `envconfig:"APP_NAME" default:"financial_advisor"`
 	AppVersion string `envconfig:"APP_VERSION" default:"v1"`
 

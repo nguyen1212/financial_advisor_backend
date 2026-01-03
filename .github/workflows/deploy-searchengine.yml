@@ -47,7 +47,9 @@ jobs:
 
             # restart container to reflect new config
             docker restart ${{ env.CONTAINER_NAME }} || true
-  
+
+            sudo chown -R 999:999 /mnt/data/manticore
+
   deploy:
     runs-on: ubuntu-latest
     needs: migrate
@@ -72,8 +74,6 @@ jobs:
               sudo newgrp docker
             fi
 
-            sudo chown -R 999:999 /mnt/data/manticore
-
             # Stop and remove old container
             docker stop ${{ env.CONTAINER_NAME }} || true
             docker rm ${{ env.CONTAINER_NAME }} || true
@@ -87,3 +87,5 @@ jobs:
               -p 9306:9306 \
               -p 9308:9308 \
               manticoresearch/manticore
+
+            sudo chown -R 999:999 /mnt/data/manticore
