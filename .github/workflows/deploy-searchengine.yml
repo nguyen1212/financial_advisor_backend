@@ -24,7 +24,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: manticore/manticore.conf
-          target: /mnt/data/manticore
+          target: /mnt/data
           
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
