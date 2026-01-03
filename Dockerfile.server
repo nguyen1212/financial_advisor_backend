@@ -7,12 +7,6 @@ ENV GO111MODULE=on \
 
 WORKDIR /build
 
-# Install sql-migrate
- RUN set -ex && \
-   go install github.com/rubenv/sql-migrate/...@v1.7.0 && \
-   cp -rf /go/bin/sql-migrate /build/sql-migrate
-
-
 COPY go.* .
 
 # download go packages
@@ -47,11 +41,9 @@ RUN adduser -D -u 1000 appuser -G appgroup
 RUN chown -R appuser:appgroup /app
 
 COPY --from=builder /build/financial_advisor_srv /app/
-COPY --from=builder /build/sql-migrate /app/
-COPY --from=builder /build/migration /app/
 
 USER appuser
 
-CMD ["sh", "-c", "./sql-migrate up -env=$ENV -config=dbconfig.yml; ./financial_advisor_srv "]
+CMD ["sh", "-c", "./financial_advisor_srv "]
 
 

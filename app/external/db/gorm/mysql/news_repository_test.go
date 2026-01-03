@@ -12,6 +12,7 @@ import (
 	"github.com/financial_advisor/app/domain/repository/specifications/mock"
 	appErrors "github.com/financial_advisor/app/errors"
 	gormAdapter "github.com/financial_advisor/app/external/db/gorm"
+	mysqlDriver "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -497,7 +498,7 @@ func Test_newsRepository_Create(t *testing.T) {
 
 		mockDB.ExpectBegin()
 		mockDB.ExpectExec(regexp.QuoteMeta(
-			"INSERT INTO `news` (`title`,`author`,`thumbnail`,`url`,`hashed_url`,`status`,`category`,`file_path`,`file_size`,`file_id`,`publisher_id`,`published_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+			"INSERT INTO `news` (`title`,`author`,`thumbnail`,`url`,`hashed_url`,`status`,`category`,`file_path`,`file_size`,`news_with_fulltext_id`,`publisher_id`,`published_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
 		)).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mockDB.ExpectCommit()
@@ -543,9 +544,9 @@ func Test_newsRepository_Create(t *testing.T) {
 
 		mockDB.ExpectBegin()
 		mockDB.ExpectExec(regexp.QuoteMeta(
-			"INSERT INTO `news` (`title`,`author`,`thumbnail`,`url`,`hashed_url`,`status`,`category`,`file_path`,`file_size`,`file_id`,`publisher_id`,`published_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+			"INSERT INTO `news` (`title`,`author`,`thumbnail`,`url`,`hashed_url`,`status`,`category`,`file_path`,`file_size`,`news_with_fulltext_id`,`publisher_id`,`published_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
 		)).
-			WillReturnError(gorm.ErrDuplicatedKey)
+			WillReturnError(&mysqlDriver.MySQLError{Number: 1062})
 		mockDB.ExpectRollback()
 
 		err = r.Create(ctx, news)
@@ -590,7 +591,7 @@ func Test_newsRepository_Create(t *testing.T) {
 
 		mockDB.ExpectBegin()
 		mockDB.ExpectExec(regexp.QuoteMeta(
-			"INSERT INTO `news` (`title`,`author`,`thumbnail`,`url`,`hashed_url`,`status`,`category`,`file_path`,`file_size`,`file_id`,`publisher_id`,`published_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+			"INSERT INTO `news` (`title`,`author`,`thumbnail`,`url`,`hashed_url`,`status`,`category`,`file_path`,`file_size`,`news_with_fulltext_id`,`publisher_id`,`published_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
 		)).
 			WillReturnError(wantErr)
 		mockDB.ExpectRollback()
@@ -641,7 +642,7 @@ func Test_newsRepository_Update(t *testing.T) {
 
 		mockDB.ExpectBegin()
 		mockDB.ExpectExec(regexp.QuoteMeta(
-			"UPDATE `news` SET `author`=?,`file_id`=?,`file_size`=?,`published_at`=?,`status`=?,`thumbnail`=?,`title`=? WHERE `id` = ?",
+			"UPDATE `news` SET `author`=?,`file_size`=?,`news_with_fulltext_id`=?,`published_at`=?,`status`=?,`thumbnail`=?,`title`=? WHERE `id` = ?",
 		)).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 		mockDB.ExpectCommit()
@@ -689,7 +690,7 @@ func Test_newsRepository_Update(t *testing.T) {
 
 		mockDB.ExpectBegin()
 		mockDB.ExpectExec(regexp.QuoteMeta(
-			"UPDATE `news` SET `author`=?,`file_id`=?,`file_size`=?,`published_at`=?,`status`=?,`thumbnail`=?,`title`=? WHERE `id` = ?",
+			"UPDATE `news` SET `author`=?,`file_size`=?,`news_with_fulltext_id`=?,`published_at`=?,`status`=?,`thumbnail`=?,`title`=? WHERE `id` = ?",
 		)).
 			WillReturnError(wantErr)
 		mockDB.ExpectRollback()

@@ -41,6 +41,7 @@ func InitManticore(_ context.Context) error {
 					LogLevel:                  logger.Warn,
 					IgnoreRecordNotFoundError: false,
 					Colorful:                  true,
+					ParameterizedQueries:      cfg.ENV == config.ENVProduction,
 				},
 				cfg.ManticoreDatabase,
 			),
