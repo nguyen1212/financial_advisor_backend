@@ -13,6 +13,7 @@ import (
 	goquSpec "github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/financial_advisor/app/services/hasher"
 	"github.com/financial_advisor/app/services/queue"
+	"github.com/financial_advisor/app/services/worker"
 	"github.com/financial_advisor/app/usecases/dto"
 	"golang.org/x/net/publicsuffix"
 )
@@ -28,19 +29,19 @@ type newsCreateUsecase struct {
 	newsRepo      repository.NewsRepository
 	publisherRepo repository.PublisherRepository
 
-	jobQueue queue.I
-	hasher   hasher.I
+	worker worker.I
+	hasher hasher.I
 }
 
 func NewNewsCreateUsecase(
 	newsRepo repository.NewsRepository,
 	publisherRepo repository.PublisherRepository,
-	jobQueue queue.I,
+	worker worker.I,
 	hasher hasher.I,
 ) NewsCreateUsecase {
 	return &newsCreateUsecase{
 		newsRepo:      newsRepo,
-		jobQueue:      jobQueue,
+		worker:        worker,
 		publisherRepo: publisherRepo,
 		hasher:        hasher,
 	}
@@ -96,10 +97,15 @@ func (uc *newsCreateUsecase) Execute(
 		return dto.News{}, fmt.Errorf("marshal web scrapper job: %w", err)
 	}
 
-	if err := uc.jobQueue.Enqueue(queue.Message{
+	msgEncoded, err := json.Marshal(queue.Message{
 		Type: queue.MessageTypeWebScrapper,
 		Body: jobEncoded,
-	}); err != nil {
+	})
+	if err != nil {
+		return dto.News{}, fmt.Errorf("marshal queue message: %w", err)
+	}
+
+	if err := uc.worker.Run(msgEncoded); err != nil {
 		return dto.News{}, fmt.Errorf("enqueue web scrapper job: %w", err)
 	}
 

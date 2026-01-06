@@ -11,7 +11,7 @@ import (
 	"github.com/financial_advisor/app/external/db/gorm/manticore"
 	"github.com/financial_advisor/app/external/db/gorm/mysql"
 	"github.com/financial_advisor/app/external/hasher"
-	"github.com/financial_advisor/app/external/queue/memory-queue"
+	"github.com/financial_advisor/app/services/worker"
 	"github.com/financial_advisor/app/usecases"
 )
 
@@ -53,7 +53,7 @@ func InjectNewsCreateUsecase() usecases.NewsCreateUsecase {
 	mySQL := gorm.GetMySQLIns()
 	newsRepository := mysql.NewNewsRepository(mySQL)
 	publisherRepository := mysql.NewPublisherRepository(mySQL)
-	i := memoryqueue.Get()
+	i := worker.Get()
 	hasherI := hasher.NewMD5()
 	newsCreateUsecase := usecases.NewNewsCreateUsecase(newsRepository, publisherRepository, i, hasherI)
 	return newsCreateUsecase

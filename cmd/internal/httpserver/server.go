@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
 
 	"github.com/financial_advisor/app/config"
 	framework "github.com/financial_advisor/app/external/framework/gin"
@@ -20,6 +21,7 @@ type serverTask struct {
 var (
 	ongoingCtx       context.Context
 	ongoingCtxCancel context.CancelFunc
+	once             sync.Once
 )
 
 func Init(
@@ -29,31 +31,33 @@ func Init(
 		return shutdown.ErrAborted
 	}
 
-	var (
-		task    = &serverTask{}
-		handler = framework.Handler()
-	)
+	once.Do(func() {
+		var (
+			task    = &serverTask{}
+			handler = framework.Handler()
+		)
 
-	// server self-manages its context
-	ongoingCtx, ongoingCtxCancel = context.WithCancel(context.Background())
+		// server self-manages its context
+		ongoingCtx, ongoingCtxCancel = context.WithCancel(context.Background())
 
-	task.srv = &http.Server{
-		Addr:    ":" + config.Get().Port,
-		Handler: handler,
-		// all requests share the same ongoingCtx
-		BaseContext: func(_ net.Listener) context.Context { return ongoingCtx },
-	}
-
-	go func() {
-		logrus.WithField("Port", config.Get().Port).Infoln("start http server")
-		if err := task.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logrus.WithError(err).Errorln("start http server")
-
-			shutdown.Get().Shutdown()
+		task.srv = &http.Server{
+			Addr:    ":" + config.Get().Port,
+			Handler: handler,
+			// all requests share the same ongoingCtx
+			BaseContext: func(_ net.Listener) context.Context { return ongoingCtx },
 		}
-	}()
 
-	shutdown.Get().Add(task)
+		go func() {
+			logrus.WithField("Port", config.Get().Port).Infoln("start http server")
+			if err := task.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logrus.WithError(err).Errorln("start http server")
+
+				shutdown.Get().Shutdown()
+			}
+		}()
+
+		shutdown.Get().Add(task)
+	})
 
 	return nil
 }

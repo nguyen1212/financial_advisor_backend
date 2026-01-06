@@ -2,58 +2,41 @@
 package memoryqueue
 
 import (
+	"encoding/json"
 	"errors"
-	"sync"
+	"fmt"
 
-	"github.com/financial_advisor/app/services/consumer"
 	"github.com/financial_advisor/app/services/queue"
-	"github.com/sirupsen/logrus"
 )
 
 type memQueue struct {
-	ch       chan queue.Message
-	consumer consumer.Manager
+	ch chan queue.Message
 }
 
-var (
-	once   sync.Once
-	mQueue memQueue
-)
-
-// Init initializes the queue and run it in background
-func Init(globalWorkersNo int, consumer consumer.Manager) {
-	once.Do(func() {
-		mQueue = memQueue{
-			ch:       make(chan queue.Message, globalWorkersNo),
-			consumer: consumer,
-		}
-
-		for range globalWorkersNo {
-			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						logrus.Errorf("memory queue worker recovered from panic: %v", r)
-					}
-				}()
-
-				for message := range mQueue.ch {
-					mQueue.consumer.Execute(message)
-				}
-			}()
-		}
-	})
+func New(workersNo int) queue.I {
+	return &memQueue{
+		ch: make(chan queue.Message, workersNo),
+	}
 }
 
-func Get() queue.I {
-	return &mQueue
+func (m *memQueue) GetMsg() (queue.Message, bool) {
+	msg, ok := <-m.ch
+
+	return msg, ok
 }
 
-func (m *memQueue) Enqueue(msg queue.Message) error {
+func (m *memQueue) Enqueue(msg []byte) error {
 	if m.ch == nil {
 		return errors.New("memory queue is not initialized")
 	}
 
-	m.ch <- msg
+	var parsedMsg queue.Message
+
+	if err := json.Unmarshal(msg, &parsedMsg); err != nil {
+		return fmt.Errorf("message is incorrect format: %w", err)
+	}
+
+	m.ch <- parsedMsg
 
 	return nil
 }

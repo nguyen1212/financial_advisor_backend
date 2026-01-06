@@ -10,7 +10,8 @@ type (
 	}
 
 	I interface {
-		Enqueue(message Message) error
+		GetMsg() (Message, bool)
+		Enqueue([]byte) error
 		Close() error
 	}
 
