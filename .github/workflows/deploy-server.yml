@@ -127,6 +127,51 @@ jobs:
 
             exit 0
 
+  rollback:
+    runs-on: ubuntu-latest
+    needs: migrate
+    environment: 
+      name: production # must follow rules set
+    steps:
+      - name: Migrate schema
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Install Docker if not exists
+            if ! command -v docker &> /dev/null; then
+              sudo dnf update -y
+              sudo dnf install -y docker
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ec2-user
+              sudo newgrp docker
+            fi
+
+            docker pull podron/financial-advisor-migrate:latest
+
+            # Migration
+            container_output=$(
+              docker run --rm \
+                -e ENV=${{ secrets.ENV }} \
+                -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+                -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+                -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+                -e MYSQL_PORT=${{ secrets.MYSQL_PORT }} \
+                -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} podron/financial-advisor-migrate:latest migrate-down
+            )
+
+            echo "$container_output"
+
+            if [[ ! "$container_output" == *"Applied"* ]]; then
+              exit 2
+            fi
+
+            exit 0
+
   deploy:
     runs-on: ubuntu-latest
     needs: migrate

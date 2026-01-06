@@ -32,11 +32,15 @@ RUN adduser -D -u 1000 appuser -G appgroup
 RUN chown -R appuser:appgroup /app
 
 COPY --from=builder /build/Makefile /app/
-COPY --from=builder /build/migration /app/
-COPY --from=builder /build/sql-migrate /app/
+COPY --from=builder /build/migration /app/migration/
+COPY --from=builder /build/sql-migrate /usr/local/bin/sql-migrate
+
+RUN chmod +x /usr/local/bin/sql-migrate
 
 USER appuser
 
-CMD ["sh", "-c", "./sql-migrate up -env=$ENV -config=dbconfig.yml"]
+ENTRYPOINT ["make"]
+
+CMD ["migrate-up"]
 
 
