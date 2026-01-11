@@ -14,8 +14,7 @@ PKG_LIST+="$(go list ./... |
   grep -v /app/config |
   grep -v /app/registry |
   grep -v /app/delivery/rest/docs |
-  grep -v /app/delivery/rest/handler |
-  grep -v /app/external/db/gorm/mysql) "
+  grep -v /app/delivery/rest/handler)"
 echo "----------------"
 echo "${GRN}Test:${RESET}"
 

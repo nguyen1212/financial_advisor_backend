@@ -64,10 +64,6 @@ func (q base) ToFind(paging specifications.PagingI) (string, error) {
 		return "", errors.New("invalid spec")
 	}
 
-	if query == nil {
-		return "", errors.New("spec not implemented")
-	}
-
 	if paging != nil {
 		query = query.Limit(uint(paging.Limit())).Offset(uint(paging.Offset()))
 	}

@@ -49,7 +49,7 @@ func (t *ShutdownTask) Shutdown() {
 
 func (t *ShutdownTask) ShutdownTasks() {
 	// helps to prevent unnecessary resources loading
-	// and setting the readiness probe to false
+	// and set the readiness probe to false
 	config.IsShuttingDown.Store(true)
 
 	logrus.Infoln("waiting for readiness drain delay...")

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"sync"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -29,6 +30,8 @@ func OpenMySQLConnection(conn string, config gorm.Config) error {
 
 			return
 		}
+
+		sqlDB.SetConnMaxLifetime(5 * time.Minute)
 
 		db, innerErr := gorm.Open(
 			mysql.New(mysql.Config{Conn: sqlDB}),

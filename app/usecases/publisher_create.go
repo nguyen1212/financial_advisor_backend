@@ -7,7 +7,6 @@ import (
 	"github.com/dchest/validator"
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository"
-	"github.com/financial_advisor/app/errors"
 	appErrors "github.com/financial_advisor/app/errors"
 	"github.com/financial_advisor/app/external/db/goqu/specifications"
 	"github.com/financial_advisor/app/usecases/dto"
@@ -54,8 +53,8 @@ func (uc *publisherCreateUsecase) Execute(
 	}
 
 	if countPublisher > 0 {
-		return dto.Publisher{}, errors.NewErrorConflicted(
-			errors.ErrorCodeConflicted,
+		return dto.Publisher{}, appErrors.NewErrorConflicted(
+			appErrors.ErrorCodeConflicted,
 			"publisher with the given domain already exists",
 		)
 	}

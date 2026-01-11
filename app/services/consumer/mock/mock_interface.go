@@ -10,46 +10,61 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	queue "github.com/financial_advisor/app/services/queue"
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockManager is a mock of Manager interface.
-type MockManager struct {
+// MockI is a mock of I interface.
+type MockI struct {
 	ctrl     *gomock.Controller
-	recorder *MockManagerMockRecorder
+	recorder *MockIMockRecorder
 	isgomock struct{}
 }
 
-// MockManagerMockRecorder is the mock recorder for MockManager.
-type MockManagerMockRecorder struct {
-	mock *MockManager
+// MockIMockRecorder is the mock recorder for MockI.
+type MockIMockRecorder struct {
+	mock *MockI
 }
 
-// NewMockManager creates a new mock instance.
-func NewMockManager(ctrl *gomock.Controller) *MockManager {
-	mock := &MockManager{ctrl: ctrl}
-	mock.recorder = &MockManagerMockRecorder{mock}
+// NewMockI creates a new mock instance.
+func NewMockI(ctrl *gomock.Controller) *MockI {
+	mock := &MockI{ctrl: ctrl}
+	mock.recorder = &MockIMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockManager) EXPECT() *MockManagerMockRecorder {
+func (m *MockI) EXPECT() *MockIMockRecorder {
 	return m.recorder
 }
 
-// Execute mocks base method.
-func (m *MockManager) Execute(arg0 queue.Message) {
+// Close mocks base method.
+func (m *MockI) Close() error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Execute", arg0)
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockIMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockI)(nil).Close))
+}
+
+// Execute mocks base method.
+func (m *MockI) Execute(arg0 context.Context, arg1 queue.Message) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Execute", arg0, arg1)
 }
 
 // Execute indicates an expected call of Execute.
-func (mr *MockManagerMockRecorder) Execute(arg0 any) *gomock.Call {
+func (mr *MockIMockRecorder) Execute(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockManager)(nil).Execute), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockI)(nil).Execute), arg0, arg1)
 }
 
 // MockProcessor is a mock of Processor interface.
@@ -77,15 +92,15 @@ func (m *MockProcessor) EXPECT() *MockProcessorMockRecorder {
 }
 
 // Execute mocks base method.
-func (m *MockProcessor) Execute(arg0 []byte) error {
+func (m *MockProcessor) Execute(arg0 context.Context, arg1 []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", arg0)
+	ret := m.ctrl.Call(m, "Execute", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Execute indicates an expected call of Execute.
-func (mr *MockProcessorMockRecorder) Execute(arg0 any) *gomock.Call {
+func (mr *MockProcessorMockRecorder) Execute(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockProcessor)(nil).Execute), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockProcessor)(nil).Execute), arg0, arg1)
 }

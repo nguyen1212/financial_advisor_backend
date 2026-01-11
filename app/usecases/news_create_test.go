@@ -9,11 +9,10 @@ import (
 	"github.com/financial_advisor/app/domain/entity"
 	"github.com/financial_advisor/app/domain/repository/mock"
 	appErrors "github.com/financial_advisor/app/errors"
-	"github.com/financial_advisor/app/external/db/goqu/specifications"
 	goquSpec "github.com/financial_advisor/app/external/db/goqu/specifications"
 	hasherMock "github.com/financial_advisor/app/services/hasher/mock"
 	"github.com/financial_advisor/app/services/queue"
-	queueMock "github.com/financial_advisor/app/services/queue/mock"
+	workerMock "github.com/financial_advisor/app/services/worker/mock"
 	"github.com/financial_advisor/app/usecases/dto"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -27,17 +26,17 @@ func Test_NewNewsCreateUsecase(t *testing.T) {
 
 	newsRepo := mock.NewMockNewsRepository(mockCtrl)
 	publisherRepo := mock.NewMockPublisherRepository(mockCtrl)
-	jobQueue := queueMock.NewMockI(mockCtrl)
+	worker := workerMock.NewMockI(mockCtrl)
 	hasher := hasherMock.NewMockI(mockCtrl)
 
 	expected := &newsCreateUsecase{
 		newsRepo:      newsRepo,
 		publisherRepo: publisherRepo,
-		jobQueue:      jobQueue,
+		worker:        worker,
 		hasher:        hasher,
 	}
 
-	assert.Equal(t, expected, NewNewsCreateUsecase(newsRepo, publisherRepo, jobQueue, hasher))
+	assert.Equal(t, expected, NewNewsCreateUsecase(newsRepo, publisherRepo, worker, hasher))
 }
 
 func Test_NewsCreateUsecase_Execute(t *testing.T) {
@@ -58,12 +57,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -99,10 +98,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 			NewsID: 1, // This will be set after Create returns
 		}
 		expectedJobBytes, _ := json.Marshal(expectedJob)
-		jobQueue.EXPECT().Enqueue(queue.Message{
+		expectedMessage := queue.Message{
 			Type: queue.MessageTypeWebScrapper,
 			Body: expectedJobBytes,
-		}).Return(nil)
+		}
+		expectedMessageBytes, _ := json.Marshal(expectedMessage)
+		worker.EXPECT().Run(expectedMessageBytes).Return(nil)
 
 		result, err := uc.Execute(ctx, req)
 
@@ -127,12 +128,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 		)
@@ -160,12 +161,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -198,12 +199,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -235,12 +236,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -273,12 +274,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -324,10 +325,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 			NewsID: 1,
 		}
 		expectedJobBytes, _ := json.Marshal(expectedJob)
-		jobQueue.EXPECT().Enqueue(queue.Message{
+		expectedMessage := queue.Message{
 			Type: queue.MessageTypeWebScrapper,
 			Body: expectedJobBytes,
-		}).Return(nil)
+		}
+		expectedMessageBytes, _ := json.Marshal(expectedMessage)
+		worker.EXPECT().Run(expectedMessageBytes).Return(nil)
 
 		result, err := uc.Execute(ctx, req)
 
@@ -352,12 +355,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -369,7 +372,7 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 		hasher.EXPECT().Hash(req.URL).Return(hashedURL)
 		newsRepo.EXPECT().Count(
 			gomock.Any(),
-			CustomMatcher(specMatcher(specifications.NewNewsByHashedURL(hashedURL))),
+			CustomMatcher(specMatcher(goquSpec.NewNewsByHashedURL(hashedURL))),
 		).Return(int64(0), nil)
 
 		publisherRepo.EXPECT().Get(
@@ -404,12 +407,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -442,12 +445,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -493,12 +496,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -543,12 +546,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -580,10 +583,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 			NewsID: 1,
 		}
 		expectedJobBytes, _ := json.Marshal(expectedJob)
-		jobQueue.EXPECT().Enqueue(queue.Message{
+		expectedMessage := queue.Message{
 			Type: queue.MessageTypeWebScrapper,
 			Body: expectedJobBytes,
-		}).Return(queueErr)
+		}
+		expectedMessageBytes, _ := json.Marshal(expectedMessage)
+		worker.EXPECT().Run(expectedMessageBytes).Return(queueErr)
 
 		_, err := uc.Execute(ctx, req)
 
@@ -606,12 +611,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -647,10 +652,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 			NewsID: 1,
 		}
 		expectedJobBytes, _ := json.Marshal(expectedJob)
-		jobQueue.EXPECT().Enqueue(queue.Message{
+		expectedMessage := queue.Message{
 			Type: queue.MessageTypeWebScrapper,
 			Body: expectedJobBytes,
-		}).Return(nil)
+		}
+		expectedMessageBytes, _ := json.Marshal(expectedMessage)
+		worker.EXPECT().Run(expectedMessageBytes).Return(nil)
 
 		result, err := uc.Execute(ctx, req)
 
@@ -676,12 +683,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -717,10 +724,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 			NewsID: 1,
 		}
 		expectedJobBytes, _ := json.Marshal(expectedJob)
-		jobQueue.EXPECT().Enqueue(queue.Message{
+		expectedMessage := queue.Message{
 			Type: queue.MessageTypeWebScrapper,
 			Body: expectedJobBytes,
-		}).Return(nil)
+		}
+		expectedMessageBytes, _ := json.Marshal(expectedMessage)
+		worker.EXPECT().Run(expectedMessageBytes).Return(nil)
 
 		result, err := uc.Execute(ctx, req)
 
@@ -744,12 +753,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 
 			newsRepo      = mock.NewMockNewsRepository(mockCtrl)
 			publisherRepo = mock.NewMockPublisherRepository(mockCtrl)
-			jobQueue      = queueMock.NewMockI(mockCtrl)
+			worker        = workerMock.NewMockI(mockCtrl)
 			hasher        = hasherMock.NewMockI(mockCtrl)
 			uc            = &newsCreateUsecase{
 				newsRepo:      newsRepo,
 				publisherRepo: publisherRepo,
-				jobQueue:      jobQueue,
+				worker:        worker,
 				hasher:        hasher,
 			}
 
@@ -790,10 +799,12 @@ func Test_NewsCreateUsecase_Execute(t *testing.T) {
 			NewsID: 1,
 		}
 		expectedJobBytes, _ := json.Marshal(expectedJob)
-		jobQueue.EXPECT().Enqueue(queue.Message{
+		expectedMessage := queue.Message{
 			Type: queue.MessageTypeWebScrapper,
 			Body: expectedJobBytes,
-		}).Return(nil)
+		}
+		expectedMessageBytes, _ := json.Marshal(expectedMessage)
+		worker.EXPECT().Run(expectedMessageBytes).Return(nil)
 
 		result, err := uc.Execute(ctx, req)
 

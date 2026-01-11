@@ -3,12 +3,17 @@ package consumer
 
 //go:generate mockgen -destination=./mock/mock_$GOFILE -source=$GOFILE -package=mock
 
-import "github.com/financial_advisor/app/services/queue"
+import (
+	"context"
 
-type Manager interface {
-	Execute(queue.Message)
+	"github.com/financial_advisor/app/services/queue"
+)
+
+type I interface {
+	Execute(context.Context, queue.Message)
+	Close() error
 }
 
 type Processor interface {
-	Execute([]byte) error
+	Execute(context.Context, []byte) error
 }

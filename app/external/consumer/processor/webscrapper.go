@@ -2,14 +2,16 @@
 package processor
 
 import (
+	"context"
 	"encoding/json"
+	"time"
 
-	"github.com/financial_advisor/app/config"
 	"github.com/financial_advisor/app/domain/entity"
+	"github.com/financial_advisor/app/services/consumer"
 	"github.com/financial_advisor/app/usecases"
 )
 
-type WebScrapperProcessor struct {
+type webScrapperProcessor struct {
 	mUsecases map[entity.WebDomain]usecases.WebScrapperUsecase
 	fallback  usecases.FallbackScrapperUsecase
 }
@@ -17,14 +19,14 @@ type WebScrapperProcessor struct {
 func NewWebScrapperProcessor(
 	mUsecases map[entity.WebDomain]usecases.WebScrapperUsecase,
 	fallback usecases.FallbackScrapperUsecase,
-) WebScrapperProcessor {
-	return WebScrapperProcessor{
+) consumer.Processor {
+	return &webScrapperProcessor{
 		mUsecases: mUsecases,
 		fallback:  fallback,
 	}
 }
 
-func (p WebScrapperProcessor) Execute(msg []byte) error {
+func (p *webScrapperProcessor) Execute(ctx context.Context, msg []byte) error {
 	var job entity.WebScrapperJob
 
 	err := json.Unmarshal(msg, &job)
@@ -32,13 +34,17 @@ func (p WebScrapperProcessor) Execute(msg []byte) error {
 		return err
 	}
 
+	// TODO: if there is a need to adjust timeout, consider making it configurable
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	uc, ok := p.mUsecases[job.Domain]
 	if !ok {
-		return p.fallback.Execute(config.Get().GlobalCtx(), job)
+		return p.fallback.Execute(timeoutCtx, job)
 	}
 
 	err = uc.Execute(
-		config.Get().GlobalCtx(),
+		timeoutCtx,
 		job,
 	)
 

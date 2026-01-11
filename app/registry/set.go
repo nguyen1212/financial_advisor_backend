@@ -5,14 +5,14 @@ import (
 	"github.com/financial_advisor/app/external/db/gorm/manticore"
 	"github.com/financial_advisor/app/external/db/gorm/mysql"
 	"github.com/financial_advisor/app/external/hasher"
-	memoryqueue "github.com/financial_advisor/app/external/queue/memory-queue"
+	"github.com/financial_advisor/app/services/worker"
 	"github.com/google/wire"
 )
 
 var singletonSet = wire.NewSet(
 	gorm.GetMySQLIns,
 	gorm.GetManticoreIns,
-	memoryqueue.Get,
+	worker.Get,
 )
 
 var repositorySet = wire.NewSet(
