@@ -114,7 +114,7 @@ jobs:
                 -e ENV=${{ secrets.ENV }} \
                 -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
                 -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-                -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+                -e MYSQL_HOST=financial-advisor.chkgi4aumvam.ap-southeast-1.rds.amazonaws.com \
                 -e MYSQL_PORT=${{ secrets.MYSQL_PORT }} \
                 -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} podron/financial-advisor-migrate:latest
             )
