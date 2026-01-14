@@ -60,7 +60,7 @@ func Test_FallbackScrapperUsecase_Execute(t *testing.T) {
 		// Mock getting news by ID
 		newsRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByID(job.NewsID))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(job.NewsID))),
 		).Return(news, nil)
 
 		// Mock updating news status to failed
@@ -94,7 +94,7 @@ func Test_FallbackScrapperUsecase_Execute(t *testing.T) {
 		// Mock news not found
 		newsRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByID(job.NewsID))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(job.NewsID))),
 		).Return(entity.News{}, appErrors.ErrNotFound)
 
 		err := uc.Execute(ctx, job)
@@ -126,7 +126,7 @@ func Test_FallbackScrapperUsecase_Execute(t *testing.T) {
 		// Mock database error on get
 		newsRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByID(job.NewsID))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(job.NewsID))),
 		).Return(entity.News{}, dbErr)
 
 		err := uc.Execute(ctx, job)
@@ -169,7 +169,7 @@ func Test_FallbackScrapperUsecase_Execute(t *testing.T) {
 		// Mock successful get
 		newsRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByID(job.NewsID))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(job.NewsID))),
 		).Return(news, nil)
 
 		// Mock update failure
@@ -215,7 +215,7 @@ func Test_FallbackScrapperUsecase_Execute(t *testing.T) {
 		// Mock getting news by ID
 		newsRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByID(job.NewsID))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(job.NewsID))),
 		).Return(news, nil)
 
 		// Mock updating news status to failed
@@ -286,7 +286,7 @@ func Test_FallbackScrapperUsecase_Execute(t *testing.T) {
 				// Mock getting news by ID
 				newsRepo.EXPECT().Get(
 					ctx,
-					CustomMatcher(specMatcher(goquSpec.NewNewsByID(job.NewsID))),
+					CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(job.NewsID))),
 				).Return(news, nil)
 
 				// Mock updating news status to failed
@@ -301,4 +301,3 @@ func Test_FallbackScrapperUsecase_Execute(t *testing.T) {
 		}
 	})
 }
-

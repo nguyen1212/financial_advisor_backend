@@ -87,18 +87,18 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			CustomMatcher(SpecMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
 		).Return(int64(2), nil)
 
 		newsRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			CustomMatcher(SpecMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
 			goquSpec.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(newsEntities, nil)
 
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileIDs([]uint64{101, 102}, 256))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByFileIDs([]uint64{101, 102}, 256))),
 			goquSpec.ToPaging(2, 1),
 		).Return(newsWithFullTextEntities, nil)
 
@@ -135,7 +135,7 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			CustomMatcher(SpecMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
 		).Return(int64(0), nil)
 
 		result, _, err := uc.Execute(ctx, req)
@@ -169,7 +169,7 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			CustomMatcher(SpecMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
 		).Return(int64(0), repoErr)
 
 		_, _, err := uc.Execute(ctx, req)
@@ -216,18 +216,18 @@ func Test_NewsFindUsecase_Execute(t *testing.T) {
 
 		newsRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			CustomMatcher(SpecMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
 		).Return(int64(1), nil)
 
 		newsRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
+			CustomMatcher(SpecMatcher(goquSpec.NewsByDate(req.From, req.To, req.Status))),
 			goquSpec.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(newsEntities, nil)
 
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileIDs([]uint64{103}, 256))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByFileIDs([]uint64{103}, 256))),
 			goquSpec.ToPaging(1, 1),
 		).Return(newsWithFullTextEntities, nil)
 

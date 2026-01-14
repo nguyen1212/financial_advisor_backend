@@ -63,7 +63,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
+			CustomMatcher(SpecMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(publisherEntities, nil)
 
@@ -100,7 +100,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
+			CustomMatcher(SpecMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return([]entity.Publisher{}, nil)
 
@@ -133,7 +133,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
+			CustomMatcher(SpecMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(nil, repoErr)
 
@@ -172,7 +172,7 @@ func Test_PublishersFindUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublishersByNone())),
+			CustomMatcher(SpecMatcher(specifications.NewPublishersByNone())),
 			specifications.ToPaging(req.Paging.Size, req.Paging.Page),
 		).Return(publisherEntities, nil)
 

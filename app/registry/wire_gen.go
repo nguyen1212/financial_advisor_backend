@@ -11,6 +11,7 @@ import (
 	"github.com/financial_advisor/app/external/db/gorm/manticore"
 	"github.com/financial_advisor/app/external/db/gorm/mysql"
 	"github.com/financial_advisor/app/external/hasher"
+	"github.com/financial_advisor/app/services/consumer"
 	"github.com/financial_advisor/app/services/worker"
 	"github.com/financial_advisor/app/usecases"
 )
@@ -105,4 +106,10 @@ func InjectNewsSearchUsecase() usecases.NewsSearchUsecase {
 	newsWithFullTextRepository := manticore.NewNewsRepository(gormManticore)
 	newsSearchUsecase := usecases.NewNewsSearchUsecase(newsRepository, newsWithFullTextRepository)
 	return newsSearchUsecase
+}
+
+func InjectConsumerService() consumer.I {
+	v := ProvideProcessors()
+	i := consumer.NewManager(v)
+	return i
 }

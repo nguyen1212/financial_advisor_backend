@@ -49,7 +49,7 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 		// Mock count returns 0 (no existing publisher)
 		publisherRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublisherByDomain("example.com"))),
+			CustomMatcher(SpecMatcher(specifications.NewPublisherByDomain("example.com"))),
 		).Return(int64(0), nil)
 
 		// Mock successful create
@@ -96,7 +96,7 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 		// Mock count returns 1 (existing publisher)
 		publisherRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublisherByDomain("example.com"))),
+			CustomMatcher(SpecMatcher(specifications.NewPublisherByDomain("example.com"))),
 		).Return(int64(1), nil)
 
 		_, err := uc.Execute(ctx, req)
@@ -128,7 +128,7 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublisherByDomain("example.com"))),
+			CustomMatcher(SpecMatcher(specifications.NewPublisherByDomain("example.com"))),
 		).Return(int64(0), countErr)
 
 		_, err := uc.Execute(ctx, req)
@@ -159,7 +159,7 @@ func Test_PublisherCreateUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Count(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublisherByDomain("example.com"))),
+			CustomMatcher(SpecMatcher(specifications.NewPublisherByDomain("example.com"))),
 		).Return(int64(0), nil)
 
 		publisherRepo.EXPECT().Create(

@@ -56,9 +56,11 @@ func (mr *MockIMockRecorder) Close() *gomock.Call {
 }
 
 // Execute mocks base method.
-func (m *MockI) Execute(arg0 context.Context, arg1 queue.Message) {
+func (m *MockI) Execute(arg0 context.Context, arg1 queue.Message) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Execute", arg0, arg1)
+	ret := m.ctrl.Call(m, "Execute", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Execute indicates an expected call of Execute.

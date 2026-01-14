@@ -6,6 +6,7 @@
 package registry
 
 import (
+	"github.com/financial_advisor/app/services/consumer"
 	"github.com/financial_advisor/app/usecases"
 	"github.com/google/wire"
 )
@@ -72,6 +73,12 @@ func InjectNewsSearchSuggestionGetUsecase() usecases.NewsSearchSuggestionsGetUse
 
 func InjectNewsSearchUsecase() usecases.NewsSearchUsecase {
 	wire.Build(NewsSearchUsecaseSet)
+
+	return nil
+}
+
+func InjectConsumerService() consumer.I {
+	wire.Build(ConsumerServiceSet)
 
 	return nil
 }

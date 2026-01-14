@@ -55,7 +55,7 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 			)
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, appErrors.ErrNotFound)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, appErrors.ErrNotFound)
 
 		_, err := uc.Execute(ctx, newsID, dto.NewsGetRequest{})
 
@@ -78,7 +78,7 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 			repoErr = errors.New("database error")
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, repoErr)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, repoErr)
 
 		_, err := uc.Execute(ctx, newsID, dto.NewsGetRequest{})
 
@@ -106,7 +106,7 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 
 		result, err := uc.Execute(ctx, newsID, dto.NewsGetRequest{})
 
@@ -150,10 +150,10 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 		newsWithFullTextRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
 		).Return(newsWithFullText, nil)
 
 		result, err := uc.Execute(ctx, newsID, req)
@@ -199,10 +199,10 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 		newsWithFullTextRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
 		).Return(newsWithFullText, nil)
 
 		result, err := uc.Execute(ctx, newsID, req)
@@ -243,10 +243,10 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 			fullTextErr = errors.New("full text repository error")
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 		newsWithFullTextRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
 		).Return(entity.NewsWithFullText{}, fullTextErr)
 
 		_, err := uc.Execute(ctx, newsID, req)
@@ -288,10 +288,10 @@ func Test_NewsGetUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 		newsWithFullTextRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByFileID(news.NewsWithFullTextID, news.FileSize, req.HighlightKeywords))),
 		).Return(newsWithFullText, nil)
 
 		result, err := uc.Execute(ctx, newsID, req)
