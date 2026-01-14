@@ -3,32 +3,31 @@ package consumer
 
 import (
 	"context"
+	"errors"
 
-	"github.com/financial_advisor/app/services/consumer"
 	"github.com/financial_advisor/app/services/queue"
 	"github.com/sirupsen/logrus"
 )
 
-// ephemeralManager processes jobs without state tracking
-type ephemeralManager struct {
-	mProcessors map[queue.MessageType]consumer.Processor
+// manager processes jobs without state tracking
+type manager struct {
+	mProcessors map[queue.MessageType]Processor
 }
 
-// NewEphemeralManager creates new ephemeral job manager
-// which processes jobs without state tracking
-func NewEphemeralManager(processors map[queue.MessageType]consumer.Processor) consumer.I {
-	return &ephemeralManager{
+// NewManager creates new ephemeral job manager
+func NewManager(processors map[queue.MessageType]Processor) I {
+	return &manager{
 		mProcessors: processors,
 	}
 }
 
-func (m *ephemeralManager) Execute(ctx context.Context, msg queue.Message) {
+func (m *manager) Execute(ctx context.Context, msg queue.Message) error {
 	processor, ok := m.mProcessors[msg.Type]
 	if !ok {
 		logrus.WithField("message_type", msg.Type.String()).
 			Errorln("processor for message is not available")
 
-		return
+		return errors.New("processor for message is not available: " + msg.Type.String())
 	}
 
 	if err := processor.Execute(ctx, msg.Body); err != nil {
@@ -36,8 +35,10 @@ func (m *ephemeralManager) Execute(ctx context.Context, msg queue.Message) {
 			WithError(err).
 			Errorln("process message")
 	}
+
+	return nil
 }
 
-func (m *ephemeralManager) Close() error {
+func (m *manager) Close() error {
 	return nil
 }

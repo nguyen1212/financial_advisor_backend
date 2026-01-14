@@ -7,11 +7,12 @@ type (
 	Message struct {
 		Body []byte
 		Type MessageType
+		UUID string
 	}
 
 	I interface {
-		GetMsg() (Message, bool)
-		Enqueue([]byte) error
+		Dequeue() (Message, bool)
+		Enqueue(Message) error
 		Close() error
 	}
 

@@ -90,7 +90,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock full-text search with proximity
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByKeywords(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByKeywords(
 				req.Keywords,
 				256,
 				goquSpec.FullTextSearchOpProximity,
@@ -101,7 +101,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock news repository find by IDs
 		newsRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByIDs([]uint64{1, 2}))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByIDs([]uint64{1, 2}))),
 			goquSpec.ToPaging(2, 1),
 		).Return(newsEntities, nil)
 
@@ -160,7 +160,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock full-text search with quorum (>10 keywords)
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByKeywords(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByKeywords(
 				req.Keywords,
 				256,
 				goquSpec.FullTextSearchOpQuorum,
@@ -171,7 +171,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock news repository find by IDs
 		newsRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByIDs([]uint64{1}))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByIDs([]uint64{1}))),
 			goquSpec.ToPaging(1, 1),
 		).Return(newsEntities, nil)
 
@@ -273,7 +273,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock full-text search error
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByKeywords(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByKeywords(
 				req.Keywords,
 				256,
 				goquSpec.FullTextSearchOpProximity,
@@ -323,7 +323,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock successful full-text search
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByKeywords(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByKeywords(
 				req.Keywords,
 				256,
 				goquSpec.FullTextSearchOpProximity,
@@ -334,7 +334,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock news repository error
 		newsRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByIDs([]uint64{1}))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByIDs([]uint64{1}))),
 			goquSpec.ToPaging(1, 1),
 		).Return(nil, newsRepoErr)
 
@@ -371,7 +371,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock empty full-text search results
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByKeywords(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByKeywords(
 				req.Keywords,
 				256,
 				goquSpec.FullTextSearchOpProximity,
@@ -443,7 +443,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock full-text search
 		newsWithFullTextRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsWithFullTextByKeywords(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsWithFullTextByKeywords(
 				req.Keywords,
 				256,
 				goquSpec.FullTextSearchOpProximity,
@@ -454,7 +454,7 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		// Mock news repository find by IDs
 		newsRepo.EXPECT().Find(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsByIDs([]uint64{1, 2}))),
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsByIDs([]uint64{1, 2}))),
 			goquSpec.ToPaging(2, 1),
 		).Return(newsEntities, nil)
 
@@ -472,4 +472,3 @@ func Test_NewsSearchUsecase_Execute(t *testing.T) {
 		assert.Equal(t, "", result[1].Content) // No matching content
 	})
 }
-

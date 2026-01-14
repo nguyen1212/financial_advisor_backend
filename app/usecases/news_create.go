@@ -105,7 +105,7 @@ func (uc *newsCreateUsecase) Execute(
 		return dto.News{}, fmt.Errorf("marshal queue message: %w", err)
 	}
 
-	if err := uc.worker.Run(msgEncoded); err != nil {
+	if err := uc.worker.Run(ctx, msgEncoded); err != nil {
 		return dto.News{}, fmt.Errorf("enqueue web scrapper job: %w", err)
 	}
 

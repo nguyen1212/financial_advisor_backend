@@ -50,7 +50,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 
 		publisherRepo.EXPECT().Get(
 			ctx,
-			CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID))),
+			CustomMatcher(SpecMatcher(specifications.NewPublisherByID(publisherID))),
 		).Return(publisher, nil)
 
 		result, err := uc.Execute(ctx, publisherID)
@@ -81,7 +81,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 			)
 		)
 
-		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID)))).Return(entity.Publisher{}, appErrors.ErrNotFound)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(specifications.NewPublisherByID(publisherID)))).Return(entity.Publisher{}, appErrors.ErrNotFound)
 
 		_, err := uc.Execute(ctx, publisherID)
 
@@ -104,7 +104,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 			repoErr = errors.New("database error")
 		)
 
-		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID)))).Return(entity.Publisher{}, repoErr)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(specifications.NewPublisherByID(publisherID)))).Return(entity.Publisher{}, repoErr)
 
 		_, err := uc.Execute(ctx, publisherID)
 
@@ -133,7 +133,7 @@ func Test_PublisherGetUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		publisherRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(specifications.NewPublisherByID(publisherID)))).Return(publisher, nil)
+		publisherRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(specifications.NewPublisherByID(publisherID)))).Return(publisher, nil)
 
 		result, err := uc.Execute(ctx, publisherID)
 

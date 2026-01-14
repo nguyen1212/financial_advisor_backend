@@ -1,4 +1,4 @@
-package usecases
+package specifications
 
 import (
 	"errors"
@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/financial_advisor/app/domain/repository/specifications"
 	"github.com/luci/go-render/render"
 	"go.uber.org/mock/gomock"
 )
@@ -77,9 +76,9 @@ func asCode(v any) string {
 }
 
 func SpecMatcher(
-	expectedSpec specifications.I,
-) func(specifications.I) (bool, matcherValue) {
-	return func(actualSpec specifications.I) (bool, matcherValue) {
+	expectedSpec I,
+) func(I) (bool, matcherValue) {
+	return func(actualSpec I) (bool, matcherValue) {
 		var (
 			actualQuery, actualErr     = actualSpec.ToGet()
 			expectedQuery, expectedErr = expectedSpec.ToGet()

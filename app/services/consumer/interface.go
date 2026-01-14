@@ -10,7 +10,7 @@ import (
 )
 
 type I interface {
-	Execute(context.Context, queue.Message)
+	Execute(context.Context, queue.Message) error
 	Close() error
 }
 

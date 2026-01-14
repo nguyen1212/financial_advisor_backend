@@ -54,8 +54,23 @@ func (mr *MockIMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockI)(nil).Close))
 }
 
+// Dequeue mocks base method.
+func (m *MockI) Dequeue() (queue.Message, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Dequeue")
+	ret0, _ := ret[0].(queue.Message)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// Dequeue indicates an expected call of Dequeue.
+func (mr *MockIMockRecorder) Dequeue() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dequeue", reflect.TypeOf((*MockI)(nil).Dequeue))
+}
+
 // Enqueue mocks base method.
-func (m *MockI) Enqueue(arg0 []byte) error {
+func (m *MockI) Enqueue(arg0 queue.Message) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Enqueue", arg0)
 	ret0, _ := ret[0].(error)
@@ -66,19 +81,4 @@ func (m *MockI) Enqueue(arg0 []byte) error {
 func (mr *MockIMockRecorder) Enqueue(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Enqueue", reflect.TypeOf((*MockI)(nil).Enqueue), arg0)
-}
-
-// GetMsg mocks base method.
-func (m *MockI) GetMsg() (queue.Message, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMsg")
-	ret0, _ := ret[0].(queue.Message)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetMsg indicates an expected call of GetMsg.
-func (mr *MockIMockRecorder) GetMsg() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMsg", reflect.TypeOf((*MockI)(nil).GetMsg))
 }

@@ -2,9 +2,7 @@
 package memoryqueue
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/financial_advisor/app/services/queue"
 )
@@ -19,24 +17,18 @@ func New(workersNo int) queue.I {
 	}
 }
 
-func (m *memQueue) GetMsg() (queue.Message, bool) {
+func (m *memQueue) Dequeue() (queue.Message, bool) {
 	msg, ok := <-m.ch
 
 	return msg, ok
 }
 
-func (m *memQueue) Enqueue(msg []byte) error {
+func (m *memQueue) Enqueue(msg queue.Message) error {
 	if m.ch == nil {
 		return errors.New("memory queue is not initialized")
 	}
 
-	var parsedMsg queue.Message
-
-	if err := json.Unmarshal(msg, &parsedMsg); err != nil {
-		return fmt.Errorf("message is incorrect format: %w", err)
-	}
-
-	m.ch <- parsedMsg
+	m.ch <- msg
 
 	return nil
 }

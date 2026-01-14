@@ -60,7 +60,7 @@ func Test_NewsSearchSuggestionsGetUsecase_Execute(t *testing.T) {
 		// Mock search suggestions call
 		newsWithFullTextRepo.EXPECT().FindSearchSuggestions(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsSearchSuggestions(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsSearchSuggestions(
 				req.Keywords,
 				goquSpec.StrongFuzziness,
 			))),
@@ -103,7 +103,7 @@ func Test_NewsSearchSuggestionsGetUsecase_Execute(t *testing.T) {
 		// Mock search suggestions call
 		newsWithFullTextRepo.EXPECT().FindSearchSuggestions(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsSearchSuggestions(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsSearchSuggestions(
 				req.Keywords,
 				goquSpec.StrongFuzziness,
 			))),
@@ -194,7 +194,7 @@ func Test_NewsSearchSuggestionsGetUsecase_Execute(t *testing.T) {
 		// Mock repository error
 		newsWithFullTextRepo.EXPECT().FindSearchSuggestions(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsSearchSuggestions(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsSearchSuggestions(
 				req.Keywords,
 				goquSpec.StrongFuzziness,
 			))),
@@ -229,7 +229,7 @@ func Test_NewsSearchSuggestionsGetUsecase_Execute(t *testing.T) {
 		// Mock empty suggestions result
 		newsWithFullTextRepo.EXPECT().FindSearchSuggestions(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsSearchSuggestions(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsSearchSuggestions(
 				req.Keywords,
 				goquSpec.StrongFuzziness,
 			))),
@@ -276,7 +276,7 @@ func Test_NewsSearchSuggestionsGetUsecase_Execute(t *testing.T) {
 		// Mock search suggestions call
 		newsWithFullTextRepo.EXPECT().FindSearchSuggestions(
 			ctx,
-			CustomMatcher(specMatcher(goquSpec.NewNewsSearchSuggestions(
+			CustomMatcher(SpecMatcher(goquSpec.NewNewsSearchSuggestions(
 				req.Keywords,
 				goquSpec.StrongFuzziness,
 			))),
@@ -295,4 +295,3 @@ func Test_NewsSearchSuggestionsGetUsecase_Execute(t *testing.T) {
 		assert.Contains(t, result, "trading")
 	})
 }
-

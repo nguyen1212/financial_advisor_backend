@@ -56,7 +56,7 @@ func Test_VnExpressScrapper_ErrorHandler(t *testing.T) {
 				updatedNews := news
 				updatedNews.Status = entity.NewsStatusFailed
 
-				repo.EXPECT().Get(context.Background(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(123))))).Return(news, nil)
+				repo.EXPECT().Get(context.Background(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(123))))).Return(news, nil)
 				repo.EXPECT().Update(gomock.Any(), &updatedNews).Return(nil)
 			},
 			expectNoError: true,
@@ -65,7 +65,7 @@ func Test_VnExpressScrapper_ErrorHandler(t *testing.T) {
 			name:   "error - get news fails",
 			newsID: 456,
 			setupMock: func(repo *mock.MockNewsRepository, fullTextRepo *mock.MockNewsWithFullTextRepository) {
-				repo.EXPECT().Get(context.Background(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(456))))).Return(entity.News{}, fmt.Errorf("news not found"))
+				repo.EXPECT().Get(context.Background(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(456))))).Return(entity.News{}, fmt.Errorf("news not found"))
 			},
 			expectedError: "get news by id to update error status: news not found",
 		},
@@ -80,7 +80,7 @@ func Test_VnExpressScrapper_ErrorHandler(t *testing.T) {
 				updatedNews := news
 				updatedNews.Status = entity.NewsStatusFailed
 
-				repo.EXPECT().Get(context.Background(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(789))))).Return(news, nil)
+				repo.EXPECT().Get(context.Background(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(789))))).Return(news, nil)
 				repo.EXPECT().Update(gomock.Any(), &updatedNews).Return(fmt.Errorf("database error"))
 			},
 			expectedError: "update news status to failed: database error",
@@ -158,7 +158,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 				updatedNews.PublishedAt = &publishedDate
 				updatedNews.FileSize = int64(len("This is the news content"))
 
-				repo.EXPECT().Get(gomock.Any(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(123))))).Return(news, nil)
+				repo.EXPECT().Get(gomock.Any(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(123))))).Return(news, nil)
 				fullTextRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				repo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updateNews *entity.News) error {
 					// Verify the updated fields
@@ -182,7 +182,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 			newsID:       456,
 			thumbnailURL: "https://example.com/thumb.jpg",
 			setupMock: func(repo *mock.MockNewsRepository, fullTextRepo *mock.MockNewsWithFullTextRepository) {
-				repo.EXPECT().Get(gomock.Any(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(456))))).Return(entity.News{}, fmt.Errorf("news not found"))
+				repo.EXPECT().Get(gomock.Any(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(456))))).Return(entity.News{}, fmt.Errorf("news not found"))
 			},
 			expectedError: "get news by id to save extracted content: news not found",
 		},
@@ -202,7 +202,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 					Status:      entity.NewsStatusAdded,
 				}
 
-				repo.EXPECT().Get(gomock.Any(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(789))))).Return(news, nil)
+				repo.EXPECT().Get(gomock.Any(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(789))))).Return(news, nil)
 				fullTextRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 
 				// First call will be the main update that fails
@@ -229,7 +229,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 					Status:      entity.NewsStatusAdded,
 				}
 
-				repo.EXPECT().Get(gomock.Any(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(999))))).Return(news, nil)
+				repo.EXPECT().Get(gomock.Any(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(999))))).Return(news, nil)
 				fullTextRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				repo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updateNews *entity.News) error {
 					assert.Equal(t, entity.NewsStatusSynced, updateNews.Status)
@@ -262,7 +262,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 					Status:      entity.NewsStatusAdded,
 				}
 
-				repo.EXPECT().Get(gomock.Any(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(111))))).Return(news, nil)
+				repo.EXPECT().Get(gomock.Any(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(111))))).Return(news, nil)
 				fullTextRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				repo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updateNews *entity.News) error {
 					// Verify the updated fields and that FileSize is greater than 0
@@ -296,7 +296,7 @@ func Test_VnExpressScrapper_SaveFile(t *testing.T) {
 					Status:      entity.NewsStatusAdded,
 				}
 
-				repo.EXPECT().Get(gomock.Any(), CustomMatcher(specMatcher(specifications.NewNewsByID(uint64(222))))).Return(news, nil)
+				repo.EXPECT().Get(gomock.Any(), CustomMatcher(SpecMatcher(specifications.NewNewsByID(uint64(222))))).Return(news, nil)
 				fullTextRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 				repo.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updateNews *entity.News) error {
 					assert.Equal(t, entity.NewsStatusSynced, updateNews.Status)

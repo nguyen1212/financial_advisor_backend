@@ -58,7 +58,7 @@ func Test_NewsDeleteUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 		newsRepo.EXPECT().Delete(ctx, newsID).Return(nil)
 
 		err := uc.Execute(ctx, newsID)
@@ -86,7 +86,7 @@ func Test_NewsDeleteUsecase_Execute(t *testing.T) {
 			}
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 		newsRepo.EXPECT().Delete(ctx, newsID).Return(nil)
 
 		err := uc.Execute(ctx, newsID)
@@ -108,7 +108,7 @@ func Test_NewsDeleteUsecase_Execute(t *testing.T) {
 			uc       = &newsDeleteUsecase{newsRepo: newsRepo}
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, appErrors.ErrNotFound)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, appErrors.ErrNotFound)
 
 		err := uc.Execute(ctx, newsID)
 
@@ -131,7 +131,7 @@ func Test_NewsDeleteUsecase_Execute(t *testing.T) {
 			getErr = errors.New("database error")
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, getErr)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(entity.News{}, getErr)
 
 		err := uc.Execute(ctx, newsID)
 
@@ -160,7 +160,7 @@ func Test_NewsDeleteUsecase_Execute(t *testing.T) {
 			deleteErr = errors.New("database error")
 		)
 
-		newsRepo.EXPECT().Get(ctx, CustomMatcher(specMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
+		newsRepo.EXPECT().Get(ctx, CustomMatcher(SpecMatcher(goquSpec.NewNewsByID(newsID)))).Return(news, nil)
 		newsRepo.EXPECT().Delete(ctx, newsID).Return(deleteErr)
 
 		err := uc.Execute(ctx, newsID)
