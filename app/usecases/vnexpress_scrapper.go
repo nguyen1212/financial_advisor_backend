@@ -36,6 +36,9 @@ func NewVnExpressScrapperUsecase(
 	}
 }
 
+// TODO:
+// - should move the gocolly to external package (define a well-fit interface)
+// - use shared lock to avoid concurrent access (use Redis as lock or use MySQL memory lock)
 func (uc vnExpressScrapper) Execute(
 	ctx context.Context,
 	job entity.WebScrapperJob,
