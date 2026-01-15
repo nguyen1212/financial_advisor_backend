@@ -129,7 +129,7 @@ jobs:
 
   noop:
     runs-on: ubutun-latest
-    needs: deploy
+    needs: migrate
     steps:
       - name: noop
         run: |
