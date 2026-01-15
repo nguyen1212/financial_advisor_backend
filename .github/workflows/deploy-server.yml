@@ -130,6 +130,10 @@ jobs:
   noop:
     runs-on: ubutun-latest
     needs: deploy
+    steps:
+      - name: noop
+        run: |
+          echo "No OP"
 
   rollback:
     runs-on: ubuntu-latest
